@@ -1,0 +1,59 @@
+{
+  "step1": {
+    "welcome_title": "Welcome to LMC Maps",
+    "welcome_body": "Experience minimalist navigation with ultra-modern efficiency."
+  },
+  "step2": {
+    "efficiency": "Efficiency",
+    "redefined": "redefined",
+    "feature1_title": "Fast navigation",
+    "feature1_body": "Real-time routing with no latency",
+    "feature2_title": "Smart parking",
+    "feature2_body": "Find spots before you arrive",
+    "feature3_title": "Transit planning",
+    "feature3_body": "Smooth multimodal connections"
+  },
+  "step3": {
+    "title": "Your profile",
+    "body": "Your name is only used for sharing features. You can keep it private if you prefer.",
+    "enter_your_name": "Enter your name",
+    "stay_anonymously": "Stay anonymously",
+    "traveler": "Traveler",
+    "greeting": "Oh, {{name}} what a lovely name!"
+  },
+  "step4": {
+    "heading": "Permissions",
+    "description": "To provide the best navigation experience, LMC Maps needs the following access:",
+    "warning_missing_title": "Permission required",
+    "warning_missing": "Can't continue without location permission.",
+    "warning_partial_title": "Limited features",
+    "warning_partial": "Some features will be unavailable if not all permissions are granted.",
+    "location_title": "Location Services",
+    "location_body": "Enable precise navigation and real-time traffic updates.",
+    "notifications_title": "Notifications",
+    "notifications_body": "Stay informed with arrival alerts and route changes.",
+    "contacts_title": "Contacts",
+    "contacts_body": "Easily find and navigate to your friends' addresses."
+  },
+  "step5": {
+    "heading": "Privacy Control",
+    "description": "Choose how much data you'd like to share to help us improve your navigation experience.",
+    "option_total": "Total",
+    "option_total_body": "Includes Debug & Error reports for full optimization",
+    "option_necessary": "Necessary",
+    "option_necessary_body": "Sends critical error reports only to ensure stability",
+    "option_limited": "Limited",
+    "option_limited_body": "Tracks install counts anonymously for growth stats",
+    "option_none": "None",
+    "option_none_tag": "Private",
+    "option_none_body": "No data leaves this device and no requests go through our servers",
+    "none_warning": "With this option you must choose a routing engine and, if required, supply your own API key"
+  },
+  "get_started": "Get started",
+  "next": "Next",
+  "lang_en": "English",
+  "lang_fr": "Français",
+  "step3_required_title": "Name required",
+  "step3_required": "Please enter a name or stay anonymously to continue.",
+  "dismiss": "Dismiss"
+}

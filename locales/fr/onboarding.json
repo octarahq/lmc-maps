@@ -1,0 +1,59 @@
+{
+  "step1": {
+    "welcome_title": "Bienvenue sur LMC Maps",
+    "welcome_body": "Expérimentez une navigation minimaliste avec une efficacité ultra-moderne."
+  },
+  "step2": {
+    "efficiency": "Efficacité",
+    "redefined": "redéfinie",
+    "feature1_title": "Navigation rapide",
+    "feature1_body": "Itinéraire en temps réel sans latence",
+    "feature2_title": "Parking intelligent",
+    "feature2_body": "Trouvez des places avant votre arrivée",
+    "feature3_title": "Planification des transports",
+    "feature3_body": "Connexions multimodales fluides"
+  },
+  "step3": {
+    "title": "Votre profil",
+    "body": "Votre nom n'est utilisé que pour les fonctionnalités de partage. Vous pouvez le garder privé si vous préférez.",
+    "enter_your_name": "Entrez votre nom",
+    "stay_anonymously": "Rester anonyme",
+    "traveler": "Voyageur",
+    "greeting": "Oh, {{name}} quel joli nom !"
+  },
+  "step4": {
+    "heading": "Permissions",
+    "description": "Pour offrir la meilleure expérience de navigation, LMC Maps nécessite les accès suivants :",
+    "warning_missing_title": "Permission requise",
+    "warning_missing": "Impossible de continuer sans permission de localisation.",
+    "warning_partial_title": "Fonctionnalités limitées",
+    "warning_partial": "Certaines fonctionnalités seront inaccessibles si toutes les autorisations ne sont pas accordées.",
+    "location_title": "Services de localisation",
+    "location_body": "Activez la navigation précise et les mises à jour du trafic en temps réel.",
+    "notifications_title": "Notifications",
+    "notifications_body": "Restez informé avec des alertes d'arrivée et des changements d'itinéraire.",
+    "contacts_title": "Contacts",
+    "contacts_body": "Retrouvez et naviguez facilement vers les adresses de vos amis."
+  },
+  "step5": {
+    "heading": "Contrôle de la vie privée",
+    "description": "Choisissez combien de données vous souhaitez partager pour nous aider à améliorer votre expérience de navigation.",
+    "option_total": "Total",
+    "option_total_body": "Inclut rapports de débogage et d'erreurs pour une optimisation complète",
+    "option_necessary": "Nécessaire",
+    "option_necessary_body": "Envoie uniquement les rapports d'erreurs critiques pour assurer la stabilité",
+    "option_limited": "Limité",
+    "option_limited_body": "Suit anonymement les installations pour les statistiques de croissance",
+    "option_none": "Aucune",
+    "option_none_tag": "Privé",
+    "option_none_body": "Aucun donnée ne quitte l'appareil et aucune requête ne passe par nos serveurs",
+    "none_warning": "Avec cette option, vous devrez sélectionner un calculateur de trajets et fournir, si nécessaire, votre propre clé API"
+  },
+  "get_started": "Commencer",
+  "next": "Suivant",
+  "lang_en": "English",
+  "lang_fr": "Français",
+  "step3_required_title": "Nom requis",
+  "step3_required": "Veuillez entrer un nom ou rester anonyme pour continuer.",
+  "dismiss": "Fermer"
+}
