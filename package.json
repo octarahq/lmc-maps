@@ -13,7 +13,7 @@
     "expo:doctor": "npx expo-doctor",
     "gradle:check": "cd android && ./gradlew assembleDebug --no-daemon",
     "preflight": "npm run lint && npm run typecheck && npm run expo:doctor && npx expo prebuild --no-install && npm run gradle:check",
-    "eas:build:preview": "npx --yes --ignore-existing eas-cli@latest build --profile preview --platform android"
+    "eas:build:preview": "npx --yes --ignore-existing eas-cli@latest build --platform android --local --profile preview"
   },
   "dependencies": {
     "@expo/ui": "~0.2.0-beta.9",
