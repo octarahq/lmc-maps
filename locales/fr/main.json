@@ -1,0 +1,35 @@
+{
+  "appTitle": "LMC Cartes",
+  "searchPlaceholder": "Où aller ?",
+  "chips": {
+    "home": "Domicile",
+    "work": "Travail",
+    "recent": "Récent",
+    "more": "Plus"
+  },
+  "sheet": {
+    "exploreCity": "Explorer {{city}}",
+    "exploreArea": "Explorer cette zone",
+    "timeMinutes": "{{minutes}}"
+  },
+  "items": {
+    "gas": "Station",
+    "food": "Restauration",
+    "coffee": "Café",
+    "parking": "Parking"
+  }
+  ,
+  "layers": {
+    "title": "Couches de la carte",
+    "mapType": "Type de carte",
+    "mapTypes": {
+      "standard": "Standard",
+      "satellite": "Satellite",
+      "terrain": "Terrain"
+    },
+    "details": "Détails de la carte",
+    "darkMap": "Carte sombre",
+    "traffic": "Trafic",
+    "publicTransport": "Transports en commun"
+  }
+}

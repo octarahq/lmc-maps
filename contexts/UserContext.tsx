@@ -32,9 +32,7 @@ function loadProfile(): Promise<UserProfile> {
 }
 
 function saveProfile(profile: UserProfile) {
-  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(profile)).catch((e) => {
-    console.warn("failed to save user profile", e);
-  });
+  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(profile)).catch(() => {});
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {

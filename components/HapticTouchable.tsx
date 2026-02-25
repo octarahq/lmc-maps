@@ -2,14 +2,13 @@ import { useHapticSettings } from "@/contexts/HapticSettingsContext";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
-    Platform,
-    TouchableOpacity,
-    TouchableOpacityProps,
-    Vibration,
+  Platform,
+  TouchableOpacity,
+  TouchableOpacityProps,
+  Vibration,
 } from "react-native";
 
 export type HapticTouchableProps = TouchableOpacityProps & {
-  /** disable haptic feedback for this touchable */
   disableHaptic?: boolean;
 };
 

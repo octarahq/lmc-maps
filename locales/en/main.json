@@ -1,0 +1,35 @@
+{
+  "appTitle": "LMC Maps",
+  "searchPlaceholder": "Where to?",
+  "chips": {
+    "home": "Home",
+    "work": "Work",
+    "recent": "Recent",
+    "more": "More"
+  },
+  "sheet": {
+    "exploreCity": "Explore {{city}}",
+    "exploreArea": "Explore this area",
+    "timeMinutes": "{{minutes}}"
+  },
+  "items": {
+    "gas": "Gas",
+    "food": "Food",
+    "coffee": "Coffee",
+    "parking": "Parking"
+  }
+  ,
+  "layers": {
+    "title": "Map Layers",
+    "mapType": "Map Type",
+    "mapTypes": {
+      "standard": "Standard",
+      "satellite": "Satellite",
+      "terrain": "Terrain"
+    },
+    "details": "Map Details",
+    "darkMap": "Dark map",
+    "traffic": "Traffic",
+    "publicTransport": "Public Transport"
+  }
+}

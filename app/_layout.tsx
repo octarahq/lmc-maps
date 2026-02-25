@@ -40,7 +40,7 @@ export default function RootLayout() {
           setShowOnboarding(true);
         }
       })
-      .catch((err) => console.warn("Failed to read onboarding state", err))
+      .catch()
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -55,19 +55,13 @@ export default function RootLayout() {
           <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
           >
-            <Stack>
-              {showOnboarding ? (
+            <Stack screenOptions={{ headerShown: false }}>
+              {showOnboarding && (
                 <Stack.Screen
                   name="(onboarding)"
                   options={{ headerShown: false }}
                 />
-              ) : (
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               )}
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", title: "Modal" }}
-              />
             </Stack>
             <StatusBar style="auto" />
           </ThemeProvider>

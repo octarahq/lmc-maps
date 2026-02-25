@@ -68,10 +68,8 @@ function InnerLayout() {
                 hideWarning();
                 try {
                   await AsyncStorage.setItem(STORAGE_KEY, "true");
-                } catch (e) {
-                  console.warn("Failed to save onboarding flag", e);
-                }
-                router.replace("/(tabs)");
+                } catch {}
+                router.replace("/");
               },
             },
           ],
@@ -95,10 +93,8 @@ function InnerLayout() {
                 hideWarning();
                 try {
                   await AsyncStorage.setItem(STORAGE_KEY, "true");
-                } catch (e) {
-                  console.warn("Failed to save onboarding flag", e);
-                }
-                router.replace("/(tabs)");
+                } catch {}
+                router.replace("/");
               },
             },
           ],
@@ -112,10 +108,8 @@ function InnerLayout() {
     } else {
       try {
         await AsyncStorage.setItem(STORAGE_KEY, "true");
-      } catch (e) {
-        console.warn("Failed to save onboarding flag", e);
-      }
-      router.replace("/(tabs)");
+      } catch {}
+      router.replace("/");
     }
   };
 
@@ -141,7 +135,7 @@ function InnerLayout() {
             disabled={validIndex === 2 && !name}
           />
         </View>
-        {/* always render message so closing animation can run */}
+
         {lastWarning && (
           <WarningMessage
             visible={!!warning}
