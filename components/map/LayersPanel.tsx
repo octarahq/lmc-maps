@@ -51,7 +51,7 @@ export default function LayersPanel({ onClose }: LayersPanelProps) {
     Haptics.impactAsync(impactStyle).catch(() => {
       try {
         Haptics.selectionAsync();
-      } catch (e) {}
+      } catch {}
     });
   }, [impactStyle]);
 

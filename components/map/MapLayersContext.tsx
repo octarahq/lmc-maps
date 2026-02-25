@@ -65,7 +65,7 @@ export function MapLayersProvider({ children }: MapLayersProviderProps) {
             setBuildings3d(parsed.buildings3d);
           if (typeof parsed.darkTheme === "boolean")
             setDarkTheme(parsed.darkTheme);
-        } catch (e) {}
+        } catch {}
       })
       .catch(() => {});
     return () => {

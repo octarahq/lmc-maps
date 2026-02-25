@@ -137,7 +137,7 @@ function MapProviderContent({
         }
       },
     };
-  }, [followUser, position, layers.mapType, layers.darkTheme, currentZoom]);
+  }, [followUser, position, layers.mapType, currentZoom]);
 
   const handleMapMsg = React.useCallback(
     (msg: any) => {
@@ -245,7 +245,7 @@ function MapProviderContent({
     }
 
     post({ type: "setBaseLayer", layer: layers.mapType, theme });
-  }, [layers.mapType, layers.darkTheme, mapReady]);
+  }, [layers.mapType, layers.darkTheme, mapReady, currentZoom]);
   return (
     <MapCtx.Provider value={controls}>
       <View style={[styles.container, style]} onLayout={onLayout}>

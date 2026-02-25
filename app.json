@@ -45,6 +45,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7bcdb261-e2d7-453b-8917-e6746567ef9c"
+      }
+    },
+    "owner": "lmc-group"
   }
 }

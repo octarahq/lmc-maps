@@ -1,5 +1,6 @@
 import { useHapticSettings } from "@/contexts/HapticSettingsContext";
 import { createTranslator } from "@/i18n";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
@@ -7,6 +8,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -19,6 +21,10 @@ interface MapOverlayProps {
 export default function MapOverlay({ blockMap }: MapOverlayProps) {
   const { t } = createTranslator("main");
   const { vibration } = useHapticSettings();
+  const lastAvatarTapRef = React.useRef<number>(0);
+  const avatarTapTimeoutRef = React.useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
 
   const impactStyle = React.useMemo(() => {
     const force = vibration.force ?? 1;
@@ -41,6 +47,43 @@ export default function MapOverlay({ blockMap }: MapOverlayProps) {
     },
     [triggerHaptic],
   );
+
+  const handleAvatarPress = React.useCallback(() => {
+    triggerHaptic();
+    const now = Date.now();
+    const timeSinceLastTap = now - lastAvatarTapRef.current;
+
+    if (avatarTapTimeoutRef.current) {
+      clearTimeout(avatarTapTimeoutRef.current);
+    }
+
+    if (timeSinceLastTap < 300) {
+      // Double tap detected
+      lastAvatarTapRef.current = 0;
+      AsyncStorage.removeItem("hasOnboarded");
+      ToastAndroid.show(
+        "Onboarding reset redemarrer l'app",
+        ToastAndroid.SHORT,
+      );
+    } else {
+      // Single tap - show onboarding status
+      lastAvatarTapRef.current = now;
+      AsyncStorage.getItem("hasOnboarded")
+        .then((value) => {
+          const message = value
+            ? "Onboarding termine. double appuis pour reset"
+            : "Onboarding non termine.";
+          ToastAndroid.show(message, ToastAndroid.SHORT);
+        })
+        .catch(() => {
+          ToastAndroid.show("Onboarding non termine.", ToastAndroid.SHORT);
+        });
+
+      avatarTapTimeoutRef.current = setTimeout(() => {
+        lastAvatarTapRef.current = 0;
+      }, 300);
+    }
+  }, [triggerHaptic]);
 
   return (
     <View
@@ -72,10 +115,7 @@ export default function MapOverlay({ blockMap }: MapOverlayProps) {
             </View>
             <Text style={styles.title}>LMC Maps</Text>
           </View>
-          <TouchableOpacity
-            style={styles.avatar}
-            onPress={() => triggerHaptic()}
-          >
+          <TouchableOpacity style={styles.avatar} onPress={handleAvatarPress}>
             <Svg width={30} height={30} viewBox="0 -960 960 960">
               <Path
                 d="M367-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47ZM160-240v-32q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v32q0 33-23.5 56.5T720-160H240q-33 0-56.5-23.5T160-240Zm80 0h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm296.5-343.5Q560-607 560-640t-23.5-56.5Q513-720 480-720t-56.5 23.5Q400-673 400-640t23.5 56.5Q447-560 480-560t56.5-23.5ZM480-640Zm0 400Z"

@@ -62,7 +62,7 @@ export default function Controls() {
     Haptics.impactAsync(impactStyle).catch(() => {
       try {
         Haptics.selectionAsync();
-      } catch (e) {}
+      } catch {}
     });
   }, [impactStyle]);
 
