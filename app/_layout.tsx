@@ -1,72 +1,122 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import "react-native-reanimated";
+import Svg, { Path } from "react-native-svg";
 import { HapticSettingsProvider } from "../contexts/HapticSettingsContext";
 import { PermissionsProvider } from "../contexts/PermissionsContext";
-import { UserProvider } from "../contexts/UserContext";
+import { UserProvider, useUser } from "../contexts/UserContext";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+export const unstable_settings = {};
 
-const STORAGE_KEY = "hasOnboarded";
+function SplashScreenOverlay() {
+  return (
+    <View style={styles.splashContainer}>
+      <View style={styles.logoContainer}>
+        <Svg width={60} height={60} viewBox="0 -960 960 960">
+          <Path
+            d="M480-240 222-130q-13 5-24.5 2.5T178-138q-8-8-10.5-20t2.5-25l273-615q5-12 15.5-18t21.5-6q11 0 21.5 6t15.5 18l273 615q5 13 2.5 25T782-138q-8 8-19.5 10.5T738-130L480-240Z"
+            fill="#0d7ff2"
+          />
+        </Svg>
+      </View>
+    </View>
+  );
+}
 
-export default function RootLayout() {
+function InnerLayout() {
   const colorScheme = useColorScheme();
-  const [isLoading, setIsLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { hasFinishedOnboarding, isLoading } = useUser();
+  const [showSplash, setShowSplash] = useState(true);
+  const [navigationDone, setNavigationDone] = useState(false);
 
   useEffect(() => {
-    const always = process.env.EXPO_PUBLIC_SHOW_ONBOARDING_ALWAYS === "true";
+    if (isLoading) return;
 
-    if (always) {
-      setShowOnboarding(true);
-      setIsLoading(false);
+    const alwaysShowOnboarding =
+      process.env.EXPO_PUBLIC_SHOW_ONBOARDING_ALWAYS === "true";
+
+    if (alwaysShowOnboarding) {
+      if (!pathname.startsWith("/(onboarding)")) {
+        router.replace("/(onboarding)/step1");
+        setNavigationDone(true);
+      }
       return;
     }
 
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((value) => {
-        if (!value) {
-          setShowOnboarding(true);
-        }
-      })
-      .catch()
-      .finally(() => setIsLoading(false));
-  }, []);
+    if (hasFinishedOnboarding) {
+      if (!pathname.startsWith("/(main)")) {
+        router.replace("/(main)");
+        setNavigationDone(true);
+      }
+      return;
+    }
 
-  if (isLoading) {
-    return null;
-  }
+    const isOnboardingStep = [
+      "/step1",
+      "/step2",
+      "/step3",
+      "/step4",
+      "/step5",
+    ].some((step) => pathname.includes(step));
 
+    if (!isOnboardingStep) {
+      router.replace("/(onboarding)/step1");
+      setNavigationDone(true);
+    } else {
+      setNavigationDone(true);
+    }
+  }, [hasFinishedOnboarding, pathname, router, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading && navigationDone) {
+      setTimeout(() => setShowSplash(false), 300);
+    }
+  }, [isLoading, navigationDone]);
+
+  return (
+    <>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Slot />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+      {showSplash && <SplashScreenOverlay />}
+    </>
+  );
+}
+
+export default function RootLayout() {
   return (
     <PermissionsProvider>
       <HapticSettingsProvider>
         <UserProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <Stack screenOptions={{ headerShown: false }}>
-              {showOnboarding && (
-                <Stack.Screen
-                  name="(onboarding)"
-                  options={{ headerShown: false }}
-                />
-              )}
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <InnerLayout />
         </UserProvider>
       </HapticSettingsProvider>
     </PermissionsProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  logoContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

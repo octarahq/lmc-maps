@@ -6,7 +6,7 @@ import { usePermissions } from "@/contexts/PermissionsContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 const { t } = createTranslator("onboarding");
 
@@ -75,35 +75,40 @@ export default function Step5() {
 
   return (
     <ThemedView style={styles.root}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.heading}>
-            {t("step5.heading")}
-          </ThemedText>
-          <ThemedText style={styles.description}>
-            {t("step5.description")}
-          </ThemedText>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <ThemedText type="title" style={styles.heading}>
+              {t("step5.heading")}
+            </ThemedText>
+            <ThemedText style={styles.description}>
+              {t("step5.description")}
+            </ThemedText>
+          </View>
+          <View style={styles.list}>
+            {options.map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[
+                  styles.option,
+                  level === opt.key && { borderColor: Colors.dark.primary },
+                ]}
+                activeOpacity={0.8}
+                onPress={() => selectLevel(opt.key)}
+              >
+                <View style={styles.optionText}>
+                  <Text style={styles.optionTitle}>{opt.title}</Text>
+                  {opt.tag && <Text style={styles.tag}>{opt.tag}</Text>}
+                  <Text style={styles.optionBody}>{opt.body}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-        <View style={styles.list}>
-          {options.map((opt) => (
-            <TouchableOpacity
-              key={opt.key}
-              style={[
-                styles.option,
-                level === opt.key && { borderColor: Colors.dark.primary },
-              ]}
-              activeOpacity={0.8}
-              onPress={() => selectLevel(opt.key)}
-            >
-              <View style={styles.optionText}>
-                <Text style={styles.optionTitle}>{opt.title}</Text>
-                {opt.tag && <Text style={styles.tag}>{opt.tag}</Text>}
-                <Text style={styles.optionBody}>{opt.body}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -113,10 +118,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.dark.background,
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+  },
   container: {
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 0,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 100,
@@ -135,7 +144,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   list: {
-    flex: 1,
     flexDirection: "column",
     gap: 12,
     paddingVertical: 16,

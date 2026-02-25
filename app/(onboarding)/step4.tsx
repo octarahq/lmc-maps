@@ -7,21 +7,24 @@ import { createTranslator } from "@/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { usePermissions } from "../../contexts/PermissionsContext";
 
 const { t } = createTranslator("onboarding");
 
 export default function Step4() {
-  const { permissions, setPermission, warning } = usePermissions();
+  const {
+    permissions,
+    setPermission,
+    warning,
+    locationAccuracy,
+    setLocationAccuracy,
+  } = usePermissions();
   const [pressed, setPressed] = useState({
     location: false,
     notifications: false,
     contacts: false,
   });
-  const [locationAccuracy, setLocationAccuracy] = useState<
-    "none" | "low" | "high"
-  >("none");
 
   useEffect(() => {
     (async () => {
@@ -112,57 +115,62 @@ export default function Step4() {
 
   return (
     <ThemedView style={styles.root}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.heading}>
-            {t("step4.heading")}
-          </ThemedText>
-          <ThemedText style={styles.description}>
-            {t("step4.description")}
-          </ThemedText>
-        </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <ThemedText type="title" style={styles.heading}>
+              {t("step4.heading")}
+            </ThemedText>
+            <ThemedText style={styles.description}>
+              {t("step4.description")}
+            </ThemedText>
+          </View>
 
-        <View style={styles.list}>
-          {items.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={[
-                styles.item,
-                pressed[item.key] && {
-                  borderColor: Colors.dark.primary + "4D",
-                },
-                item.key === "location"
-                  ? !permissions.location
-                    ? { borderColor: "red", borderWidth: 2 }
-                    : locationAccuracy === "low"
-                      ? { borderColor: "yellow", borderWidth: 2 }
-                      : { borderColor: Colors.dark.primary, borderWidth: 2 }
-                  : permissions[item.key]
-                    ? { borderColor: Colors.dark.primary, borderWidth: 2 }
-                    : undefined,
-              ]}
-              activeOpacity={0.75}
-              onPress={() => toggle(item.key)}
-              onPressIn={() => onPressIn(item.key)}
-              onPressOut={() => onPressOut(item.key)}
-            >
-              <View style={styles.itemLeft}>
-                <View style={styles.iconCircle}>
-                  <MaterialIcons
-                    name={item.icon as any}
-                    size={28}
-                    color={Colors.dark.primary}
-                  />
+          <View style={styles.list}>
+            {items.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={[
+                  styles.item,
+                  pressed[item.key] && {
+                    borderColor: Colors.dark.primary + "4D",
+                  },
+                  item.key === "location"
+                    ? !permissions.location
+                      ? { borderColor: "red", borderWidth: 2 }
+                      : locationAccuracy === "low"
+                        ? { borderColor: "yellow", borderWidth: 2 }
+                        : { borderColor: Colors.dark.primary, borderWidth: 2 }
+                    : permissions[item.key]
+                      ? { borderColor: Colors.dark.primary, borderWidth: 2 }
+                      : undefined,
+                ]}
+                activeOpacity={0.75}
+                onPress={() => toggle(item.key)}
+                onPressIn={() => onPressIn(item.key)}
+                onPressOut={() => onPressOut(item.key)}
+              >
+                <View style={styles.itemLeft}>
+                  <View style={styles.iconCircle}>
+                    <MaterialIcons
+                      name={item.icon as any}
+                      size={28}
+                      color={Colors.dark.primary}
+                    />
+                  </View>
+                  <View style={styles.itemText}>
+                    <Text style={styles.itemTitle}>{item.title}</Text>
+                    <Text style={styles.itemBody}>{item.body}</Text>
+                  </View>
                 </View>
-                <View style={styles.itemText}>
-                  <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={styles.itemBody}>{item.body}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
+      </ScrollView>
       {warning && (
         <WarningMessage
           visible={true}
@@ -181,10 +189,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.dark.background,
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+  },
   container: {
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 0,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 100,
@@ -203,9 +215,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   list: {
-    flex: 1,
     flexDirection: "column",
     gap: 16,
+    marginBottom: 24,
   },
   item: {
     flexDirection: "row",

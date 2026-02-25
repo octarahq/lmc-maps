@@ -7,7 +7,7 @@ import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 const { t } = createTranslator("onboarding");
 
@@ -52,59 +52,64 @@ export default function Step3() {
 
   return (
     <ThemedView style={styles.root}>
-      <View style={styles.container}>
-        <View style={styles.headlineWrapper}>
-          <ThemedText type="title" style={styles.headline}>
-            {t("step3.title")}
-          </ThemedText>
-        </View>
-
-        <View style={styles.bodyWrapper}>
-          <ThemedText style={styles.body}>{t("step3.body")}</ThemedText>
-        </View>
-
-        <View style={styles.fieldSection}>
-          <TextField
-            placeholder={t("step3.enter_your_name")}
-            value={localName}
-            editable={!anon}
-            onChangeText={(text) => {
-              setLocalName(text);
-            }}
-          />
-        </View>
-        {(localName || anon) && (
-          <View style={styles.greetingSection}>
-            <ThemedText style={styles.greeting}>
-              {t("step3.greeting", {
-                name: anon ? t("step3.traveler") : localName,
-              })}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.headlineWrapper}>
+            <ThemedText type="title" style={styles.headline}>
+              {t("step3.title")}
             </ThemedText>
           </View>
-        )}
 
-        <TouchableOpacity
-          style={[
-            styles.toggleRow,
-            pressedAnon && { borderColor: Colors.dark.primary + "4D" },
-          ]}
-          activeOpacity={0.75}
-          onPress={toggleAnon}
-          onPressIn={() => setPressedAnon(true)}
-          onPressOut={() => setPressedAnon(false)}
-        >
-          <View style={styles.left}>
-            <View style={[styles.circle, anon && styles.circleChecked]} />
-            <Text style={styles.label}>{t("step3.stay_anonymously")}</Text>
+          <View style={styles.bodyWrapper}>
+            <ThemedText style={styles.body}>{t("step3.body")}</ThemedText>
           </View>
-          <MaterialIcons
-            name={!anon ? "visibility" : "visibility-off"}
-            size={24}
-            color={pressedAnon ? Colors.dark.primary : Colors.dark.icon}
-            style={styles.iconPlaceholder}
-          />
-        </TouchableOpacity>
-      </View>
+
+          <View style={styles.fieldSection}>
+            <TextField
+              placeholder={t("step3.enter_your_name")}
+              value={localName}
+              editable={!anon}
+              onChangeText={(text) => {
+                setLocalName(text);
+              }}
+            />
+          </View>
+          {(localName || anon) && (
+            <View style={styles.greetingSection}>
+              <ThemedText style={styles.greeting}>
+                {t("step3.greeting", {
+                  name: anon ? t("step3.traveler") : localName,
+                })}
+              </ThemedText>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.toggleRow,
+              pressedAnon && { borderColor: Colors.dark.primary + "4D" },
+            ]}
+            activeOpacity={0.75}
+            onPress={toggleAnon}
+            onPressIn={() => setPressedAnon(true)}
+            onPressOut={() => setPressedAnon(false)}
+          >
+            <View style={styles.left}>
+              <View style={[styles.circle, anon && styles.circleChecked]} />
+              <Text style={styles.label}>{t("step3.stay_anonymously")}</Text>
+            </View>
+            <MaterialIcons
+              name={!anon ? "visibility" : "visibility-off"}
+              size={24}
+              color={pressedAnon ? Colors.dark.primary : Colors.dark.icon}
+              style={styles.iconPlaceholder}
+            />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -114,10 +119,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.dark.background,
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
+  },
   container: {
-    flex: 1,
     paddingTop: 0,
     paddingHorizontal: 24,
+    paddingBottom: 100,
   },
   headlineWrapper: {
     paddingTop: 100,

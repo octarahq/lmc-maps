@@ -2,9 +2,9 @@ import { WarningMessage } from "@/components/WarningMessage";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Stack, usePathname, useRouter } from "expo-router";
-import React, { useEffect } from "react";
-import { LayoutAnimation, Platform, StyleSheet, View } from "react-native";
+import { Slot, usePathname, useRouter } from "expo-router";
+import React from "react";
+import { Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { usePermissions } from "../../contexts/PermissionsContext";
 import { OnboardingButton } from "./_components/button";
@@ -17,16 +17,14 @@ function InnerLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const currentIndex = ROUTES.findIndex((route) => pathname.endsWith(route));
+  const currentIndex = ROUTES.findIndex((route) => pathname.includes(route));
   const validIndex = currentIndex === -1 ? 0 : currentIndex;
 
-  useEffect(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [validIndex]);
-
-  const { permissions, warning, showWarning, hideWarning } = usePermissions();
-  const { name } = useUser();
+  const { permissions, warning, showWarning, hideWarning, locationAccuracy } =
+    usePermissions();
+  const { name, setHasFinishedOnboarding } = useUser();
   const [lastWarning, setLastWarning] = React.useState(warning);
+  const { t } = createTranslator("onboarding");
 
   React.useEffect(() => {
     if (warning) {
@@ -51,6 +49,31 @@ function InnerLayout() {
         return;
       }
     }
+
+    if (validIndex === 3) {
+      if (permissions.location && locationAccuracy === "low") {
+        showWarning({
+          iconName: "warning",
+          title: t("step4.warning_accuracy_title"),
+          description: t("step4.warning_accuracy_description"),
+          buttons: [
+            {
+              label: t("dismiss"),
+              action: hideWarning,
+            },
+            {
+              label: t("continue"),
+              action: () => {
+                hideWarning();
+                router.push(`/(onboarding)/${ROUTES[validIndex + 1]}`);
+              },
+            },
+          ],
+        });
+        return;
+      }
+    }
+
     if (validIndex === ROUTES.length - 1) {
       if (!permissions.location) {
         showWarning({
@@ -104,27 +127,20 @@ function InnerLayout() {
     }
 
     if (validIndex < ROUTES.length - 1) {
-      router.push(`./${ROUTES[validIndex + 1]}`);
+      router.push(`/(onboarding)/${ROUTES[validIndex + 1]}`);
     } else {
       try {
         await AsyncStorage.setItem(STORAGE_KEY, "true");
+        setHasFinishedOnboarding(true);
       } catch {}
       router.replace("/");
     }
   };
 
-  const { t } = createTranslator("onboarding");
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
-        <Stack>
-          <Stack.Screen name="step1" options={{ headerShown: false }} />
-          <Stack.Screen name="step2" options={{ headerShown: false }} />
-          <Stack.Screen name="step3" options={{ headerShown: false }} />
-          <Stack.Screen name="step4" options={{ headerShown: false }} />
-          <Stack.Screen name="step5" options={{ headerShown: false }} />
-        </Stack>
+        <Slot />
         <View style={styles.footer} pointerEvents="box-none">
           <PageIndicators total={ROUTES.length} current={validIndex} />
           <OnboardingButton

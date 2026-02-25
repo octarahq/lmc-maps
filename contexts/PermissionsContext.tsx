@@ -13,6 +13,8 @@ type WarningConfig = {
 type ContextType = {
   permissions: Permissions;
   setPermission: (key: PermissionKeys, value: boolean) => void;
+  locationAccuracy: "none" | "low" | "high";
+  setLocationAccuracy: (acc: "none" | "low" | "high") => void;
   warning: WarningConfig;
   showWarning: (config: WarningConfig) => void;
   hideWarning: () => void;
@@ -32,6 +34,9 @@ export function PermissionsProvider({
   children: React.ReactNode;
 }) {
   const [permissions, setPermissions] = useState<Permissions>(defaultPerms);
+  const [locationAccuracy, setLocationAccuracy] = useState<
+    "none" | "low" | "high"
+  >("none");
   const [warning, setWarning] = useState<WarningConfig>(null);
 
   const setPermission = (key: PermissionKeys, value: boolean) => {
@@ -48,6 +53,8 @@ export function PermissionsProvider({
       value={{
         permissions,
         setPermission,
+        locationAccuracy,
+        setLocationAccuracy,
         warning,
         showWarning,
         hideWarning,

@@ -1,3 +1,4 @@
+import { setLanguage as setI18nLanguage } from "@/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Localization from "expo-localization";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -8,12 +9,15 @@ export type UserProfile = {
   name: string;
   privacy: PrivacyLevel;
   language: string;
+  hasFinishedOnboarding: boolean;
 };
 
 type ContextType = UserProfile & {
   setName: (name: string) => void;
   setPrivacy: (lvl: PrivacyLevel) => void;
   setLanguage: (lang: string) => void;
+  setHasFinishedOnboarding: (val: boolean) => void;
+  isLoading: boolean;
 };
 
 const STORAGE_KEY = "userProfile";
@@ -27,7 +31,12 @@ function loadProfile(): Promise<UserProfile> {
         return JSON.parse(v) as UserProfile;
       } catch {}
     }
-    return { name: "", privacy: "total", language: "" };
+    return {
+      name: "",
+      privacy: "total",
+      language: "",
+      hasFinishedOnboarding: false,
+    };
   });
 }
 
@@ -40,16 +49,26 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     name: "",
     privacy: "total",
     language: Localization.getLocales()[0]?.languageCode || "en",
+    hasFinishedOnboarding: false,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile().then((p) => {
+    loadProfile().then(async (p) => {
       if (!p.language) {
         p.language = Localization.getLocales()[0]?.languageCode || "en";
       }
+      await setI18nLanguage(p.language);
       setProfile(p);
+      setIsLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (profile.language) {
+      setI18nLanguage(profile.language);
+    }
+  }, [profile.language]);
 
   const setName = React.useCallback((name: string) => {
     setProfile((p) => {
@@ -75,6 +94,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setHasFinishedOnboarding = React.useCallback((val: boolean) => {
+    setProfile((p) => {
+      const updated = { ...p, hasFinishedOnboarding: val };
+      saveProfile(updated);
+      return updated;
+    });
+  }, []);
+
   useEffect(() => {
     if (profile.language) {
       import("@/i18n").then(({ setLanguage }) => {
@@ -85,7 +112,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <UserContext.Provider
-      value={{ ...profile, setName, setPrivacy, setLanguage }}
+      value={{
+        ...profile,
+        setName,
+        setPrivacy,
+        setLanguage,
+        setHasFinishedOnboarding,
+        isLoading,
+      }}
     >
       <React.Fragment key={profile.language || "__init__"}>
         {children}

@@ -3,59 +3,66 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { createTranslator } from "@/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 const { t } = createTranslator("onboarding");
 
 export default function Step2() {
   return (
     <ThemedView style={styles.root}>
-      <View style={styles.container}>
-        <View style={styles.headlineWrapper}>
-          <ThemedText type="title" style={styles.headline}>
-            {t("step2.efficiency")}{" "}
-            <ThemedText style={styles.highlight}>
-              {t("step2.redefined")}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.headlineWrapper}>
+            <ThemedText type="title" style={styles.headline}>
+              {t("step2.efficiency")}{" "}
+              <ThemedText style={styles.highlight}>
+                {t("step2.redefined")}
+              </ThemedText>
             </ThemedText>
-          </ThemedText>
-        </View>
+          </View>
 
-        <View style={styles.features}>
-          {[
-            {
-              icon: "navigation",
-              title: t("step2.feature1_title"),
-              body: t("step2.feature1_body"),
-            },
-            {
-              icon: "local-parking",
-              title: t("step2.feature2_title"),
-              body: t("step2.feature2_body"),
-            },
-            {
-              icon: "train",
-              title: t("step2.feature3_title"),
-              body: t("step2.feature3_body"),
-            },
-          ].map((feat, idx) => (
-            <View key={idx} style={styles.featureItem}>
-              <View style={styles.iconWrapper}>
-                <MaterialIcons
-                  name={feat.icon as any}
-                  size={24}
-                  color={Colors.dark.primary}
-                />
+          <View style={styles.features}>
+            {[
+              {
+                icon: "navigation",
+                title: t("step2.feature1_title"),
+                body: t("step2.feature1_body"),
+              },
+              {
+                icon: "local-parking",
+                title: t("step2.feature2_title"),
+                body: t("step2.feature2_body"),
+              },
+              {
+                icon: "train",
+                title: t("step2.feature3_title"),
+                body: t("step2.feature3_body"),
+              },
+            ].map((feat, idx) => (
+              <View key={idx} style={styles.featureItem}>
+                <View style={styles.iconWrapper}>
+                  <MaterialIcons
+                    name={feat.icon as any}
+                    size={24}
+                    color={Colors.dark.primary}
+                  />
+                </View>
+                <View style={styles.featureText}>
+                  <ThemedText style={styles.featureTitle}>
+                    {feat.title}
+                  </ThemedText>
+                  <ThemedText style={styles.featureBody}>
+                    {feat.body}
+                  </ThemedText>
+                </View>
               </View>
-              <View style={styles.featureText}>
-                <ThemedText style={styles.featureTitle}>
-                  {feat.title}
-                </ThemedText>
-                <ThemedText style={styles.featureBody}>{feat.body}</ThemedText>
-              </View>
-            </View>
-          ))}
+            ))}
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -64,6 +71,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Colors.dark.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "flex-start",
   },
   content: {
     flex: 1,
@@ -86,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   container: {
-    flex: 1,
+    paddingBottom: 100,
   },
   headlineWrapper: {
     paddingHorizontal: 24,

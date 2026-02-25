@@ -25,7 +25,7 @@ export function usePosition() {
 
 export function PositionProvider({ children }: { children: React.ReactNode }) {
   const [position, setPosition] = React.useState<Position | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const doRefresh = React.useCallback(async () => {
@@ -59,10 +59,6 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   }, []);
-
-  React.useEffect(() => {
-    void doRefresh();
-  }, [doRefresh]);
 
   const value = React.useMemo(
     () => ({ position, loading, error, refresh: doRefresh }),
