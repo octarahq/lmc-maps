@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle, Defs, Pattern, Rect } from "react-native-svg";
 
-export function HeroIcon() {
+export default function HeroIcon() {
   const primary = useThemeColor({ dark: Colors.dark.primary }, "text");
   const bg = "rgba(255,255,255,0.05)";
   const border = "rgba(255,255,255,0.1)";

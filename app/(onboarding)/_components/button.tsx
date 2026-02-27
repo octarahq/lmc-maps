@@ -9,7 +9,7 @@ export type OnboardingButtonProps = TouchableOpacityProps & {
   title: string;
 };
 
-export function OnboardingButton({
+export default function OnboardingButton({
   title,
   style,
   onPress,

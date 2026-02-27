@@ -7,7 +7,7 @@ import { createTranslator, setLanguage as setI18nLanguage } from "@/i18n";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { HeroIcon } from "./_components/hero-icon";
+import HeroIcon from "./_components/hero-icon";
 
 const { t } = createTranslator("onboarding");
 

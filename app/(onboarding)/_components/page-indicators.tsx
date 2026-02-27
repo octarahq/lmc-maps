@@ -7,7 +7,10 @@ export type PageIndicatorsProps = {
   current: number;
 };
 
-export function PageIndicators({ total, current }: PageIndicatorsProps) {
+export default function PageIndicators({
+  total,
+  current,
+}: PageIndicatorsProps) {
   const activeColor = useThemeColor({ dark: Colors.dark.primary }, "text");
   const inactiveColor = "rgba(255,255,255,0.2)";
 

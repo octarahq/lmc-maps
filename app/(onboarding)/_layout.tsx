@@ -7,8 +7,8 @@ import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { usePermissions } from "../../contexts/PermissionsContext";
-import { OnboardingButton } from "./_components/button";
-import { PageIndicators } from "./_components/page-indicators";
+import OnboardingButton from "./_components/button";
+import PageIndicators from "./_components/page-indicators";
 
 const ROUTES = ["step1", "step2", "step3", "step4", "step5"] as const;
 const STORAGE_KEY = "hasOnboarded";
