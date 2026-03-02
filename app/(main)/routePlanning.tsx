@@ -439,6 +439,11 @@ export default function RoutePlanningScreen() {
 
   const routeService = useRouteService();
 
+  const routeServiceRef = React.useRef(routeService);
+  React.useEffect(() => {
+    routeServiceRef.current = routeService;
+  }, [routeService]);
+
   const [routeResults, setRouteResults] = React.useState<
     Partial<
       Record<
@@ -862,25 +867,34 @@ export default function RoutePlanningScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedCoords]);
 
+  const prevSelectedRouteKey = React.useRef("");
   React.useEffect(() => {
     if (selected === "transit") return;
     const selectedRoute = routeResults[selected];
-    if (selectedRoute) {
-      routeService.updateRouteData({
-        routes: [
-          {
-            geometry: {
-              coordinates: selectedRoute.coords.map((c) => [
-                c.longitude,
-                c.latitude,
-              ]),
-            },
-            duration: selectedRoute.duration * 60,
-            distance: selectedRoute.distance,
+    if (!selectedRoute) return;
+
+    const key = JSON.stringify({
+      d: selectedRoute.duration,
+      dist: selectedRoute.distance,
+      c: selectedRoute.coords?.length ?? 0,
+    });
+    if (key === prevSelectedRouteKey.current) return;
+    prevSelectedRouteKey.current = key;
+
+    routeServiceRef.current.updateRouteData({
+      routes: [
+        {
+          geometry: {
+            coordinates: selectedRoute.coords.map((c) => [
+              c.longitude,
+              c.latitude,
+            ]),
           },
-        ],
-      });
-    }
+          duration: selectedRoute.duration * 60,
+          distance: selectedRoute.distance,
+        },
+      ],
+    });
   }, [selected, routeResults]);
   const mapPins = React.useMemo<WaypointPin[]>(() => {
     let stepIdx = 1;
@@ -926,7 +940,7 @@ export default function RoutePlanningScreen() {
         >
           <MaterialIcons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Options de trajet</Text>
+        <Text style={styles.headerTitle}>{t("optionsTitle")}</Text>
         <View style={styles.iconButton} />
       </View>
 
@@ -940,11 +954,13 @@ export default function RoutePlanningScreen() {
           <View style={styles.summaryCardExpanded}>
             <View style={styles.expandedHeader}>
               <View style={{ flex: 1, gap: 2 }}>
-                <Text style={styles.summaryLabel}>RÉSUMÉ DU TRAJET</Text>
+                <Text style={styles.summaryLabel}>{t("summaryLabel")}</Text>
                 {selected !== "transit" && (
                   <View style={styles.summaryRouteInfo}>
                     {modesCalculating[selected] ? (
-                      <Text style={styles.summaryRouteLoading}>Calcul…</Text>
+                      <Text style={styles.summaryRouteLoading}>
+                        {t("calculating")}
+                      </Text>
                     ) : routeResults[selected] ? (
                       <>
                         <Text style={styles.summaryRouteDuration}>
@@ -989,7 +1005,7 @@ export default function RoutePlanningScreen() {
           <>
             <View style={styles.summaryCard}>
               <View style={styles.summaryLeft}>
-                <Text style={styles.summaryLabel}>RÉSUMÉ DU TRAJET</Text>
+                <Text style={styles.summaryLabel}>{t("summaryLabel")}</Text>
                 {destName ? (
                   <Text style={styles.summaryTitle} numberOfLines={2}>
                     {destName}
@@ -1035,7 +1051,9 @@ export default function RoutePlanningScreen() {
                 {selected !== "transit" && (
                   <View style={styles.summaryRouteInfo}>
                     {modesCalculating[selected] ? (
-                      <Text style={styles.summaryRouteLoading}>Calcul…</Text>
+                      <Text style={styles.summaryRouteLoading}>
+                        {t("calculating")}
+                      </Text>
                     ) : routeResults[selected] ? (
                       <>
                         <Text style={styles.summaryRouteDuration}>
@@ -1069,64 +1087,6 @@ export default function RoutePlanningScreen() {
               </TouchableOpacity>
             </View>
 
-            {selected !== "transit" && routeAlternatives[selected]?.length ? (
-              <View style={styles.alternativesSection}>
-                <Text style={styles.alternativesTitle}>
-                  {t("availableAlternatives")}
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.alternativesScroll}
-                >
-                  {routeAlternatives[selected]!.map((alt, idx) => {
-                    const isSelected =
-                      selectedAlternativeIndex[selected] === idx;
-                    return (
-                      <TouchableOpacity
-                        key={idx}
-                        style={[
-                          styles.alternativeCard,
-                          isSelected && styles.alternativeCardSelected,
-                        ]}
-                        onPress={() => handleSelectAlternative(selected, idx)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.alternativeIndex}>
-                          <Text
-                            style={[
-                              styles.alternativeIndexText,
-                              isSelected && styles.alternativeIndexTextSelected,
-                            ]}
-                          >
-                            {idx + 1}
-                          </Text>
-                        </View>
-                        <View style={styles.alternativeInfo}>
-                          <Text
-                            style={[
-                              styles.alternativeDuration,
-                              isSelected && styles.alternativeDurationSelected,
-                            ]}
-                          >
-                            {formatDuration(alt.duration)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.alternativeDistance,
-                              isSelected && styles.alternativeDistanceSelected,
-                            ]}
-                          >
-                            {formatDistance(alt.distance)}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            ) : null}
-
             <Animated.View style={editBtnAnimStyle}>
               <TouchableOpacity
                 style={styles.editStopsButton}
@@ -1134,7 +1094,7 @@ export default function RoutePlanningScreen() {
                 activeOpacity={0.75}
               >
                 <MaterialIcons name="edit-road" size={18} color="#90adcb" />
-                <Text style={styles.editStopsText}>Modifier les étapes</Text>
+                <Text style={styles.editStopsText}>{t("editStops")}</Text>
                 <MaterialIcons name="chevron-right" size={18} color="#90adcb" />
               </TouchableOpacity>
             </Animated.View>
@@ -1142,12 +1102,135 @@ export default function RoutePlanningScreen() {
         )}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Modes de transport</Text>
+          <Text style={styles.sectionTitle}>{t("modesTitle")}</Text>
         </View>
 
         <View style={styles.modesList}>
           {MODES.map((mode) => {
             const isSelected = selected === mode.id;
+            const altsCount = routeAlternatives[mode.id]?.length ?? 0;
+            const hasMultipleAlts = mode.id !== "transit" && altsCount > 1;
+
+            if (isSelected && hasMultipleAlts) {
+              const alternatives = routeAlternatives[mode.id] ?? [];
+              return (
+                <View key={mode.id} style={styles.expandedModeCard}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View style={styles.modeLeft}>
+                      <View style={styles.expandedModeIconBox}>
+                        <MaterialIcons
+                          name={mode.icon as any}
+                          size={28}
+                          color="#fff"
+                        />
+                      </View>
+                      <View style={styles.modeInfo}>
+                        <View style={styles.modeLabelRow}>
+                          <Text style={styles.modeName}>
+                            {t(`modes.${mode.id}.label`)}
+                          </Text>
+                          {getFastestMode() === mode.id ? (
+                            <View style={styles.badge}>
+                              <Text style={styles.badgeText}>
+                                {t("fastest")}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <Text
+                          style={[
+                            styles.modeSub,
+                            { color: Colors.dark.primary },
+                          ]}
+                        >
+                          {t(`modes.${mode.id}.subtitle`)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      height: 1,
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      marginVertical: 12,
+                    }}
+                  />
+
+                  {alternatives.length > 1 ? (
+                    <View style={styles.alternativesDetailSection}>
+                      {alternatives.map((alt, idx) => {
+                        const isSelectedAlt =
+                          selectedAlternativeIndex[mode.id] === idx;
+                        return (
+                          <TouchableOpacity
+                            key={idx}
+                            style={[
+                              styles.alternativeDetailRow,
+                              isSelectedAlt &&
+                                styles.alternativeDetailRowSelected,
+                            ]}
+                            onPress={() =>
+                              handleSelectAlternative(mode.id, idx)
+                            }
+                            activeOpacity={0.8}
+                          >
+                            <View style={styles.alternativeDetailLeft}>
+                              <View
+                                style={[
+                                  styles.radioOuter,
+                                  isSelectedAlt && styles.radioOuterSelected,
+                                ]}
+                              >
+                                {isSelectedAlt && (
+                                  <View style={styles.radioInner} />
+                                )}
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={[
+                                    styles.alternativeDetailTitle,
+                                    isSelectedAlt &&
+                                      styles.alternativeDetailTitleSelected,
+                                  ]}
+                                >
+                                  {t("route", { n: idx + 1 })}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.alternativeDetailSub,
+                                    isSelectedAlt &&
+                                      styles.alternativeDetailSubSelected,
+                                  ]}
+                                >
+                                  {formatDistance(alt.distance)}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text
+                              style={[
+                                styles.alternativeDetailTime,
+                                isSelectedAlt &&
+                                  styles.alternativeDetailTimeSelected,
+                              ]}
+                            >
+                              {formatDuration(alt.duration)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ) : null}
+                </View>
+              );
+            }
+
             return (
               <TouchableOpacity
                 key={mode.id}
@@ -1228,13 +1311,13 @@ export default function RoutePlanningScreen() {
             >
               <MaterialIcons name="map" size={22} color="#90adcb" />
               <Text style={[styles.startButtonText, { color: "#90adcb" }]}>
-                Voir l’aperçu
+                {t("viewPreview")}
               </Text>
             </TouchableOpacity>
           </>
         ) : (
           <TouchableOpacity style={styles.startButton} activeOpacity={0.9}>
-            <Text style={styles.startButtonText}>Démarrer la navigation</Text>
+            <Text style={styles.startButtonText}>{t("startNavigation")}</Text>
             <MaterialIcons name="near-me" size={22} color="#fff" />
           </TouchableOpacity>
         )}
@@ -1262,7 +1345,7 @@ export default function RoutePlanningScreen() {
               >
                 <MaterialIcons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Planificateur</Text>
+              <Text style={styles.headerTitle}>{t("planner")}</Text>
               <View style={styles.iconButton}></View>
             </View>
 
@@ -1528,6 +1611,29 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
+  },
+  expandedModeCard: {
+    flexDirection: "column",
+    backgroundColor: "#12202a",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: Colors.dark.primary,
+    marginBottom: 12,
+    shadowColor: Colors.dark.primary,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  expandedModeIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.dark.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   modeLeft: { flexDirection: "row", alignItems: "center", gap: 14, flex: 1 },
   modeIconBox: {
@@ -1876,5 +1982,73 @@ const styles = StyleSheet.create({
   },
   alternativeDistanceSelected: {
     color: Colors.dark.primary,
+  },
+  alternativesDetailSection: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  alternativeDetailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  alternativeDetailRowSelected: {
+    backgroundColor: "rgba(13,127,242,0.12)",
+    borderColor: Colors.dark.primary,
+    borderWidth: 2,
+  },
+  alternativeDetailLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  radioOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#6b7280",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioOuterSelected: {
+    borderColor: Colors.dark.primary,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.dark.primary,
+  },
+  alternativeDetailTitle: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  alternativeDetailTitleSelected: {
+    color: "#fff",
+  },
+  alternativeDetailSub: {
+    color: "#6b7280",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  alternativeDetailSubSelected: {
+    color: Colors.dark.primary,
+  },
+  alternativeDetailTime: {
+    color: "#6b7280",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  alternativeDetailTimeSelected: {
+    color: "#fff",
   },
 });

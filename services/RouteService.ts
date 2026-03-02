@@ -10,6 +10,7 @@ export interface RouteInfo {
   duration: number;
   distance: number;
   instruction: string;
+  label?: string;
 }
 
 export interface NavigationData {
@@ -94,10 +95,10 @@ const getRoutingOSMHost = (mode: string = "driving"): string => {
   if (mode === "walking") return "https://routing.openstreetmap.de/routed-foot";
   if (mode === "bicycling")
     return "https://routing.openstreetmap.de/routed-bike";
-  return "https://routing.openstreetmap.de/routed-car";
+  return "https://router.project-osrm.org";
 };
 
-const DEFAULT_OSRM_HOSTS = ["https://routing.openstreetmap.de/routed-car"];
+const DEFAULT_OSRM_HOSTS = ["https://router.project-osrm.org"];
 
 const DEBUG_CACHE_ENABLED = true; // true to enabled route cache
 
@@ -177,6 +178,22 @@ export function useRouteService(): RouteService {
   };
 
   const toRadians = (d: number) => d * (Math.PI / 180);
+
+  const computeLabel = (raw: any): string | undefined => {
+    try {
+      const osrmSummary = raw?.routes?.[0]?.legs?.[0]?.summary;
+      if (osrmSummary && typeof osrmSummary === "string" && osrmSummary.trim())
+        return `via ${osrmSummary}`;
+
+      const featSummary = raw?.features?.[0]?.properties?.summary?.name;
+      if (featSummary && typeof featSummary === "string" && featSummary.trim())
+        return `via ${featSummary}`;
+
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  };
   const calculateDistance = (a: Coordinate, b: Coordinate) => {
     const R = 6371000;
     const dLat = toRadians(b.latitude - a.latitude);
@@ -536,6 +553,7 @@ export function useRouteService(): RouteService {
           duration: Math.round(route.duration / 60),
           distance: Math.round(route.distance),
           instruction: "Suivre l'itinéraire",
+          label: computeLabel(cachedRoute.routeData),
         });
 
         setIsCalculating(false);
@@ -573,6 +591,7 @@ export function useRouteService(): RouteService {
         duration,
         distance,
         instruction: "Suivre l'itinéraire",
+        label: computeLabel(result.data),
       });
 
       return true;
@@ -633,6 +652,7 @@ export function useRouteService(): RouteService {
             duration: parsedDuration,
             distance: parsedDistance,
             instruction: "Suivre l'itinéraire",
+            label: computeLabel(data),
           });
           return true;
         }
@@ -697,6 +717,7 @@ export function useRouteService(): RouteService {
             duration: cachedRoute.alternatives[0].duration,
             distance: cachedRoute.alternatives[0].distance,
             instruction: "Suivre l'itinéraire",
+            label: computeLabel(cachedRoute.routeData),
           });
           setLastAlternatives(cachedRoute.alternatives);
         }
@@ -733,6 +754,7 @@ export function useRouteService(): RouteService {
           duration: result.routes[0].duration,
           distance: result.routes[0].distance,
           instruction: "Suivre l'itinéraire",
+          label: computeLabel(result.rawData),
         });
         setLastAlternatives(result.routes);
       } else {
@@ -759,6 +781,7 @@ export function useRouteService(): RouteService {
       duration: alt.duration,
       distance: alt.distance,
       instruction: "Suivre l'itinéraire",
+      label: computeLabel(lastRawRouteData),
     });
     return true;
   };
@@ -854,6 +877,7 @@ export function useRouteService(): RouteService {
               duration: Math.round(route.duration / 60),
               distance: Math.round(route.distance),
               instruction: "Suivre l'itinéraire",
+              label: computeLabel(data),
             });
             setDirectLineCoords([]);
             setNearestRoadPoint(null);
@@ -1094,7 +1118,7 @@ export async function fetchParallelRouting(
       return "https://routing.openstreetmap.de/routed-foot";
     if (mode === "bicycling")
       return "https://routing.openstreetmap.de/routed-bike";
-    return "https://routing.openstreetmap.de/routed-car";
+    return "https://router.project-osrm.org";
   };
 
   try {

@@ -14,7 +14,7 @@ export function formatSnapPoints(
   if (unit === "%" && options.screenHeight) {
     return values.map((v) => {
       const percent = (v / options.screenHeight!) * 100;
-      return `${percent}%`;
+      return `${Math.round(percent)}%`;
     });
   }
 

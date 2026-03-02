@@ -1,10 +1,23 @@
 import { SavePlaceModal } from "@/app/(main)/_components/SavePlaceModal";
+import {
+  AddressIcon,
+  BackIcon,
+  BookmarkIcon,
+  CallIcon,
+  DirectionsIcon,
+  ShareIcon,
+  WebIcon,
+} from "@/assets/icons";
+import ScheduleIcon from "@/assets/icons/ScheduleIcon";
+import MapSnapshot from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
 import { createTranslator } from "@/i18n";
 import FreePlaceDetailsService from "@/services/PlaceDetailService";
-import { MaterialIcons } from "@expo/vector-icons";
+import { snapPointsPercent } from "@/utils/snapPoints";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ImageBackground,
@@ -17,6 +30,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,6 +53,7 @@ export default function PlaceDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [details, setDetails] = useState<PlaceDetails | null>(null);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [hoursModalVisible, setHoursModalVisible] = useState(false);
 
   const WEB_BASE =
     process.env.EXPO_PUBLIC_WEB_BASE_URL ?? "https://maps.lmcgroup.xyz";
@@ -83,6 +98,36 @@ export default function PlaceDetailScreen() {
   const placeTitle = (details?.title || name || t("unknownPlace")) as string;
   const placeAddress = (address || details?.id || "") as string;
 
+  const [ohUtils, setOhUtils] = useState<any>(null);
+  const [ohStatus, setOhStatus] = useState<any>(null);
+  const sheetRef = useRef<BottomSheet>(null);
+  const { height: screenHeight } = useWindowDimensions();
+  const snapPoints = useMemo(() => {
+    return snapPointsPercent([400], screenHeight);
+  }, [screenHeight]);
+
+  useEffect(() => {
+    if (!sheetRef.current) return;
+    if (hoursModalVisible) {
+      sheetRef.current.snapToIndex(0);
+    } else {
+      sheetRef.current.close();
+    }
+  }, [hoursModalVisible]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const mod = await import("@/utils/openingHours");
+      if (!mounted) return;
+      setOhUtils(mod);
+      setOhStatus(mod.computeOpeningStatus(details?.opening_hours || null));
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [details?.opening_hours]);
+
   const getCategorization = () => {
     const val = (osm_value as string) || "";
     if (["restaurant", "fast_food", "food_court"].includes(val))
@@ -125,13 +170,13 @@ export default function PlaceDetailScreen() {
           onPress={() => router.back()}
           style={styles.iconButton}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+          <BackIcon />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {t("title")}
         </Text>
         <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
-          <MaterialIcons name="share" size={24} color="#fff" />
+          <ShareIcon />
         </TouchableOpacity>
       </View>
 
@@ -165,34 +210,29 @@ export default function PlaceDetailScreen() {
                 })
               }
             >
-              <MaterialIcons
-                name="directions"
-                size={24}
-                color="#fff"
-                style={styles.buttonIcon}
-              />
+              <DirectionsIcon />
               <Text style={styles.directionsText}>{t("directions")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => setSaveModalVisible(true)}
             >
-              <MaterialIcons name="bookmark-border" size={24} color="#fff" />
+              <BookmarkIcon />
             </TouchableOpacity>
             {details?.phone && (
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => Linking.openURL(`tel:${details.phone}`)}
               >
-                <MaterialIcons name="call" size={24} color="#fff" />
+                <CallIcon />
               </TouchableOpacity>
             )}
             {details?.website && (
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => Linking.openURL(details.website!)}
+                onPress={() => WebBrowser.openBrowserAsync(details.website!)}
               >
-                <MaterialIcons name="web" size={24} color="#fff" />
+                <WebIcon />
               </TouchableOpacity>
             )}
           </View>
@@ -200,11 +240,7 @@ export default function PlaceDetailScreen() {
           <View style={styles.detailsList}>
             <View style={styles.detailItem}>
               <View style={styles.detailIconContainer}>
-                <MaterialIcons
-                  name="location-on"
-                  size={20}
-                  color={Colors.dark.primary}
-                />
+                <AddressIcon color={Colors.dark.primary} />
               </View>
               <View style={styles.detailTextContainer}>
                 <Text style={styles.detailLabel}>{t("address")}</Text>
@@ -212,30 +248,89 @@ export default function PlaceDetailScreen() {
               </View>
             </View>
 
+            {lat && lng ? (
+              <View style={styles.placeMapPreviewFull}>
+                <MapSnapshot
+                  lat={parseFloat(lat as string)}
+                  lng={parseFloat(lng as string)}
+                />
+              </View>
+            ) : null}
+
             {details?.opening_hours && (
-              <View style={styles.detailItem}>
-                <View style={styles.detailIconContainer}>
-                  <MaterialIcons
-                    name="schedule"
-                    size={20}
-                    color={Colors.dark.primary}
-                  />
-                </View>
-                <View style={styles.detailTextContainer}>
-                  <Text style={styles.detailLabel}>{t("hours")}</Text>
-                  <View style={styles.hoursStatusRow}>
-                    <Text style={styles.detailValue}>
-                      {t("currentSchedule")}
-                    </Text>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusText}>{t("openNow")}</Text>
+              <>
+                <TouchableOpacity
+                  style={styles.detailItem}
+                  onPress={() => {
+                    setHoursModalVisible(true);
+                  }}
+                >
+                  <View style={styles.detailIconContainer}>
+                    <ScheduleIcon color={Colors.dark.primary} />
+                  </View>
+                  <View style={styles.detailTextContainer}>
+                    <Text style={styles.detailLabel}>{t("hours")}</Text>
+                    <View style={styles.hoursStatusRow}>
+                      <Text style={styles.detailValue}>
+                        {ohStatus
+                          ? ((): string => {
+                              const today = new Date().getDay();
+                              const next = ohStatus.nextChange;
+                              const daysAny = t("daysShort", {
+                                returnObjects: true,
+                              }) as unknown;
+                              const daysShort = Array.isArray(daysAny)
+                                ? (daysAny as string[])
+                                : [];
+                              const nextDay = next ? next.getDay() : null;
+
+                              if (ohStatus.isOpen) {
+                                const mins = ohStatus.minutesToChange;
+                                if (mins != null && mins < 60)
+                                  return t("closesIn", { mins });
+                                return t("closesAt", {
+                                  time: ohUtils.formatTimeForDisplay(
+                                    ohStatus.nextChange,
+                                  ),
+                                });
+                              } else {
+                                const mins = ohStatus.minutesToChange;
+                                if (mins != null && mins <= 4 * 60)
+                                  return t("opensIn", { mins });
+                                if (ohStatus.nextChange) {
+                                  const time = ohUtils.formatTimeForDisplay(
+                                    ohStatus.nextChange,
+                                  );
+                                  const daySuffix =
+                                    nextDay !== null && nextDay !== today
+                                      ? ` (${daysShort[nextDay]})`
+                                      : "";
+                                  return t("opensAt", { time }) + daySuffix;
+                                }
+                                return t("closed");
+                              }
+                            })()
+                          : ""}
+                      </Text>
+                      {ohStatus ? (
+                        ohStatus.isOpen ? (
+                          <View style={styles.openBadge}>
+                            <Text style={styles.openBadgeText}>
+                              {t("openNow")}
+                            </Text>
+                          </View>
+                        ) : (
+                          <View style={styles.closedBadge}>
+                            <Text style={styles.closedBadgeText}>
+                              {t("closed")}
+                            </Text>
+                          </View>
+                        )
+                      ) : null}
                     </View>
                   </View>
-                  <Text style={styles.subDetailValue}>
-                    {details.opening_hours}
-                  </Text>
-                </View>
-              </View>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         </View>
@@ -250,6 +345,48 @@ export default function PlaceDetailScreen() {
         initialLat={(lat as string) || ""}
         initialLng={(lng as string) || ""}
       />
+
+      <BottomSheet
+        ref={sheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        style={{ zIndex: 9999, elevation: 9999 }}
+        containerStyle={{ zIndex: 9999 }}
+        enablePanDownToClose
+        backgroundStyle={{
+          backgroundColor: "rgba(16,35,52,1)",
+          borderTopWidth: 1,
+          borderTopColor: "rgba(255,255,255,0.1)",
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: "rgba(255,255,255,0.3)",
+        }}
+        onChange={(idx) => {
+          if (idx === -1) {
+            setHoursModalVisible(false);
+          }
+        }}
+      >
+        <BottomSheetView style={styles.hoursModalInner}>
+          <Text style={styles.title}>{t("hours")}</Text>
+          <ScrollView style={{ marginTop: 12 }}>
+            {(ohStatus &&
+              ohUtils?.formatDayLines(ohStatus.rules).map((l: string) => (
+                <Text key={l} style={styles.hoursModalLine}>
+                  {l}
+                </Text>
+              ))) || <Text style={styles.hoursModalLine}>Aucun</Text>}
+
+            <View style={{ height: 24 }} />
+            <TouchableOpacity
+              onPress={() => setHoursModalVisible(false)}
+              style={styles.navButton}
+            >
+              <Text style={styles.navButtonText}>{t("ok")}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </BottomSheetView>
+      </BottomSheet>
     </View>
   );
 }
@@ -375,6 +512,22 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 2,
   },
+
+  placeMapPreview: {
+    marginTop: 8,
+    width: "100%",
+    height: 120,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  placeMapPreviewFull: {
+    marginTop: 12,
+    marginHorizontal: 16,
+    width: "auto",
+    height: 120,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
   hoursStatusRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -392,27 +545,35 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
   },
+  openBadge: {
+    backgroundColor: "rgba(46,204,113,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  openBadgeText: {
+    color: "#2ecc71",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  closedBadge: {
+    backgroundColor: "rgba(255,107,107,0.12)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  closedBadgeText: {
+    color: "#ff6b6b",
+    fontSize: 10,
+    fontWeight: "800",
+  },
   subDetailValue: {
     color: "#90adcb",
     fontSize: 14,
     marginTop: 2,
   },
-  reviewCard: {
-    marginTop: 8,
-    padding: 24,
-    borderRadius: 24,
-    backgroundColor: "#12202a",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
   navButton: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.dark.primary,
     height: 56,
     borderRadius: 16,
     flexDirection: "row",
@@ -421,7 +582,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   navButtonText: {
-    color: "#101922",
+    color: "#fff",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -434,5 +595,22 @@ const styles = StyleSheet.create({
     color: Colors.dark.primary,
     fontSize: 16,
     fontWeight: "700",
+  },
+  hoursModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  hoursModalInner: {
+    flex: 1,
+    width: "100%",
+    borderRadius: 16,
+    padding: 16,
+  },
+  hoursModalLine: {
+    color: "#fff",
+    fontSize: 16,
+    marginBottom: 8,
   },
 });

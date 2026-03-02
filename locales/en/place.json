@@ -8,6 +8,13 @@
   "hours": "Hours",
   "currentSchedule": "Current Schedule",
   "openNow": "Open Now",
+  "daysShort": ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+  "closesIn": "Closes in {{mins}} min",
+  "closesAt": "Closes at {{time}}",
+  "opensIn": "Opens in {{mins}} min",
+  "opensAt": "Opens at {{time}}",
+  "closed": "Closed",
+  "ok": "OK",
   "startNavigation": "Start Navigation",
   "categories": {
     "restaurant": "Restaurant & Lounge",

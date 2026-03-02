@@ -1,6 +1,6 @@
 {
   "modes": {
-    "car": { "label": "Voiture", "subtitle": "Via route principale" },
+    "car": { "label": "Voiture", "subtitle": "Via routes" },
     "walk": { "label": "À pied", "subtitle": "Chemin le plus court" },
     "bike": { "label": "Vélo", "subtitle": "Pistes cyclables" },
     "transit": { "label": "Transport", "subtitle": "Transports en commun" }
@@ -24,4 +24,14 @@
   "place": "Lieu"
   ,
   "step": "ÉTAPE {{n}}"
+  ,
+  "optionsTitle": "Options de trajet",
+  "summaryLabel": "RÉSUMÉ DU TRAJET",
+  "calculating": "Calcul…",
+  "editStops": "Modifier les étapes",
+  "modesTitle": "Modes de transport",
+  "route": "Route {{n}}",
+  "viewPreview": "Voir l’aperçu",
+  "startNavigation": "Démarrer la navigation",
+  "planner": "Planificateur"
 }

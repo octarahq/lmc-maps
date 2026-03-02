@@ -1,6 +1,6 @@
 {
   "modes": {
-    "car": { "label": "Car", "subtitle": "Via main roads" },
+    "car": { "label": "Car", "subtitle": "Via roads" },
     "walk": { "label": "Walk", "subtitle": "Shortest path" },
     "bike": { "label": "Bike", "subtitle": "Cycle paths" },
     "transit": { "label": "Transit", "subtitle": "Public transport" }
@@ -24,4 +24,14 @@
   "place": "Place"
   ,
   "step": "STEP {{n}}"
+  ,
+  "optionsTitle": "Route options",
+  "summaryLabel": "TRIP SUMMARY",
+  "calculating": "Calculating…",
+  "editStops": "Edit stops",
+  "modesTitle": "Transport modes",
+  "route": "Route {{n}}",
+  "viewPreview": "View preview",
+  "startNavigation": "Start navigation",
+  "planner": "Planner"
 }

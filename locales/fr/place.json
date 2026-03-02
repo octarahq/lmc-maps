@@ -8,6 +8,13 @@
   "hours": "Horaires",
   "currentSchedule": "Horaires actuels",
   "openNow": "Ouvert maintenant",
+  "daysShort": ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],
+  "closesIn": "Ferme dans {{mins}} min",
+  "closesAt": "Ferme à {{time}}",
+  "opensIn": "Ouvre dans {{mins}} min",
+  "opensAt": "Ouvre à {{time}}",
+  "closed": "Fermé",
+  "ok": "OK",
   "startNavigation": "Démarrer la navigation",
   "categories": {
     "restaurant": "Restaurant & Lounge",
