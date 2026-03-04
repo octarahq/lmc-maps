@@ -1,10 +1,10 @@
 import {
-  AppLogoIcon,
-  AvatarIcon,
-  HistoryIcon,
-  HomeIcon,
-  MoreIcon,
-  WorkIcon,
+    AppLogoIcon,
+    AvatarIcon,
+    HistoryIcon,
+    HomeIcon,
+    MoreIcon,
+    WorkIcon,
 } from "@/assets/icons";
 import { useHapticSettings } from "@/contexts/HapticSettingsContext";
 import { useUser } from "@/contexts/UserContext";
@@ -13,11 +13,11 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    paddingTop: 48,
+    paddingTop: 10,
     paddingHorizontal: 12,
     zIndex: 60,
   },

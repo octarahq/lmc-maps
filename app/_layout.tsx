@@ -1,14 +1,24 @@
 import { AppLogoIcon } from "@/assets/icons";
+import { Colors } from "@/constants/theme";
 import {
     DarkTheme,
     DefaultTheme,
     ThemeProvider,
 } from "@react-navigation/native";
+import Constants from "expo-constants";
+import * as NavigationBar from "expo-navigation-bar";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import {
+    StatusBar as NativeStatusBar,
+    Platform,
+    StyleSheet,
+    View,
+} from "react-native";
 import "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { HapticSettingsProvider } from "../contexts/HapticSettingsContext";
 import { PermissionsProvider } from "../contexts/PermissionsContext";
 import { UserProvider, useUser } from "../contexts/UserContext";
@@ -34,6 +44,7 @@ function InnerLayout() {
   const { hasFinishedOnboarding, isLoading } = useUser();
   const [showSplash, setShowSplash] = useState(true);
   const [navigationDone, setNavigationDone] = useState(false);
+  const isMainRoute = pathname.startsWith("/(main)");
 
   useEffect(() => {
     if (isLoading) return;
@@ -81,11 +92,76 @@ function InnerLayout() {
     }
   }, [isLoading, navigationDone]);
 
+  useEffect(() => {
+    const bgColor =
+      colorScheme === "dark"
+        ? Colors.dark.backgroundDark
+        : Colors.light.backgroundLight;
+    SystemUI.setBackgroundColorAsync(bgColor).catch(() => {});
+    NativeStatusBar.setHidden(true, "none");
+
+    if (Platform.OS === "android") {
+      const edgeToEdgeEnabled = Boolean(
+        (Constants.expoConfig &&
+          Constants.expoConfig.android &&
+          Constants.expoConfig.android.edgeToEdgeEnabled) ||
+        (Constants.manifest &&
+          Constants.manifest.android &&
+          Constants.manifest.android.edgeToEdgeEnabled),
+      );
+
+      NativeStatusBar.setTranslucent(true);
+      NativeStatusBar.setBackgroundColor("transparent", true);
+      if (!edgeToEdgeEnabled) {
+        NavigationBar.setPositionAsync("absolute").catch(() => {});
+        NavigationBar.setBehaviorAsync("overlay-swipe").catch(() => {});
+        NavigationBar.setVisibilityAsync("hidden").catch(() => {});
+        NavigationBar.setBackgroundColorAsync(bgColor).catch(() => {});
+        NavigationBar.setButtonStyleAsync(
+          colorScheme === "dark" ? "light" : "dark",
+        ).catch(() => {});
+      }
+    }
+  }, [colorScheme, pathname]);
+
   return (
     <>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Slot />
-        <StatusBar style="auto" />
+        {isMainRoute ? (
+          <View
+            style={[
+              styles.safeArea,
+              {
+                backgroundColor:
+                  colorScheme === "dark"
+                    ? Colors.dark.backgroundDark
+                    : Colors.light.backgroundLight,
+              },
+            ]}
+          >
+            <View style={styles.slotContainer}>
+              <Slot />
+            </View>
+          </View>
+        ) : (
+          <SafeAreaView
+            style={[
+              styles.safeArea,
+              {
+                backgroundColor:
+                  colorScheme === "dark"
+                    ? Colors.dark.backgroundDark
+                    : Colors.light.backgroundLight,
+              },
+            ]}
+            edges={["top", "bottom"]}
+          >
+            <View style={styles.slotContainer}>
+              <Slot />
+            </View>
+          </SafeAreaView>
+        )}
+        <StatusBar hidden style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>
       {showSplash && <SplashScreenOverlay />}
     </>
@@ -105,6 +181,12 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  slotContainer: {
+    flex: 1,
+  },
   splashContainer: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "#fff",

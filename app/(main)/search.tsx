@@ -3,6 +3,8 @@ import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
+import { clearRecentTrips, getRecentTrips } from "@/utils/recentTrips";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -15,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   AddPlaceIcon,
@@ -90,6 +93,8 @@ const SearchResult: React.FC<{
 export default function SearchScreen() {
   const { t } = createTranslator("search");
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top - 10, 4);
   const { mode: modeParam } = useLocalSearchParams();
   const initialMode =
     modeParam === "explore"
@@ -136,6 +141,20 @@ export default function SearchScreen() {
   const [addressResults, setAddressResults] = React.useState<PhotonFeature[]>(
     [],
   );
+  const [recentTrips, setRecentTrips] = React.useState<any[]>([]);
+  const [visibleRecentCount, setVisibleRecentCount] = React.useState(5);
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const r = await getRecentTrips();
+      if (!mounted) return;
+      setRecentTrips(r);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     const q = query.trim();
@@ -173,10 +192,15 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar
+        hidden
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: topInset }]}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
@@ -212,17 +236,18 @@ export default function SearchScreen() {
             <View style={styles.resultsList}>
               <ScrollView keyboardShouldPersistTaps="handled">
                 {filteredAmenities.length > 0 &&
-                  filteredAmenities
-                    .slice(0, 10)
-                    .map((a) => (
-                      <SearchResult
-                        key={a.value}
-                        icon={<AmenityIcon />}
-                        title={a.label}
-                        subtitle={t(`type_${a.type.toLowerCase()}`)}
-                        onPress={() => setQuery(a.label)}
-                      />
-                    ))}
+                  filteredAmenities.slice(0, 10).map((a) => (
+                    <SearchResult
+                      key={a.value}
+                      icon={<AmenityIcon />}
+                      title={a.label}
+                      subtitle={t(`type_${a.type.toLowerCase()}`)}
+                      onPress={() => {
+                        setQuery(a.label);
+                        showCommingSoonToast();
+                      }}
+                    />
+                  ))}
 
                 {addressResults.length > 0 &&
                   addressResults.slice(0, 10).map((r) => {
@@ -372,7 +397,11 @@ export default function SearchScreen() {
                   { icon: <EvIcon />, label: t("chip_ev") },
                   { icon: <FoodIcon />, label: t("chip_food") },
                 ].map((c) => (
-                  <TouchableOpacity key={c.label} style={styles.chip}>
+                  <TouchableOpacity
+                    key={c.label}
+                    style={styles.chip}
+                    onPress={() => showCommingSoonToast()}
+                  >
                     <View style={styles.chipIcon}>{c.icon}</View>
                     <Text style={styles.chipLabel}>{c.label}</Text>
                   </TouchableOpacity>
@@ -384,28 +413,67 @@ export default function SearchScreen() {
                   <Text style={styles.sectionTitle}>
                     {t("recent_searches")}
                   </Text>
-                  <TouchableOpacity>
-                    <Text style={styles.clear}>{t("clear_all")}</Text>
-                  </TouchableOpacity>
+                  {recentTrips.length > 0 ? (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        await clearRecentTrips();
+                        setRecentTrips([]);
+                        setVisibleRecentCount(5);
+                      }}
+                    >
+                      <Text style={styles.clear}>{t("clear_all")}</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
+                {recentTrips.length === 0 ? (
+                  <View style={{ padding: 12 }}>
+                    <Text style={{ color: "#90adcb" }}>
+                      {t("no_recent_trips") || "Aucun trajet récent"}
+                    </Text>
+                  </View>
+                ) : (
+                  recentTrips.slice(0, visibleRecentCount).map((r) => (
+                    <SearchResult
+                      key={`${r.lat}_${r.lng}_${r.ts}`}
+                      icon={<HistoryIcon />}
+                      title={r.name || r.address || ""}
+                      subtitle={r.address || ""}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/(main)/place",
+                          params: {
+                            name: r.name,
+                            address: r.address,
+                            lat: String(r.lat),
+                            lng: String(r.lng),
+                          },
+                        });
+                      }}
+                    />
+                  ))
+                )}
 
-                <SearchResult
-                  icon={<HistoryIcon />}
-                  title="1 rue de bonjour"
-                  subtitle="issou, France"
-                />
-
-                <SearchResult
-                  icon={<WorkIcon />}
-                  title="La maison de cobra"
-                  subtitle="Qq part, France"
-                />
+                {recentTrips.length > visibleRecentCount && (
+                  <TouchableOpacity
+                    style={{ padding: 8 }}
+                    onPress={() =>
+                      setVisibleRecentCount((c) => Math.min(10, c + 5))
+                    }
+                  >
+                    <Text style={{ color: "#0d7ff2" }}>
+                      {t("show_more") || "Voir plus"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.exploreSection}>
                 <Text style={styles.sectionTitle}>{t("explore_nearby")}</Text>
                 <View style={styles.grid}>
-                  <TouchableOpacity style={styles.card}>
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => showCommingSoonToast()}
+                  >
                     <ImageBackground
                       source={topDiningImg}
                       style={styles.cardImage}
@@ -415,7 +483,10 @@ export default function SearchScreen() {
                     </ImageBackground>
                     <Text style={styles.cardText}>{t("card_top_dining")}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.card}>
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => showCommingSoonToast()}
+                  >
                     <ImageBackground
                       source={nightlifeImg}
                       style={styles.cardImage}
@@ -425,7 +496,10 @@ export default function SearchScreen() {
                     </ImageBackground>
                     <Text style={styles.cardText}>{t("card_nightlife")}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.card}>
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => showCommingSoonToast()}
+                  >
                     <ImageBackground
                       source={natureImg}
                       style={styles.cardImage}
@@ -435,7 +509,10 @@ export default function SearchScreen() {
                     </ImageBackground>
                     <Text style={styles.cardText}>{t("card_nature")}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.card}>
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => showCommingSoonToast()}
+                  >
                     <ImageBackground
                       source={shoppingImg}
                       style={styles.cardImage}
@@ -453,7 +530,10 @@ export default function SearchScreen() {
             <View style={styles.exploreSection}>
               <Text style={styles.sectionTitle}>{t("explore_nearby")}</Text>
               <View style={styles.grid}>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={topDiningImg}
                     style={styles.cardImage}
@@ -463,7 +543,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_top_dining")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={nightlifeImg}
                     style={styles.cardImage}
@@ -473,7 +556,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_nightlife")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={natureImg}
                     style={styles.cardImage}
@@ -483,7 +569,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_nature")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={shoppingImg}
                     style={styles.cardImage}
@@ -493,7 +582,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_shopping")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={cultureImg}
                     style={styles.cardImage}
@@ -503,7 +595,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_culture")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={activityImg}
                     style={styles.cardImage}
@@ -513,7 +608,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_activities")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={foodImg}
                     style={styles.cardImage}
@@ -523,7 +621,10 @@ export default function SearchScreen() {
                   </ImageBackground>
                   <Text style={styles.cardText}>{t("card_food")}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => showCommingSoonToast()}
+                >
                   <ImageBackground
                     source={socialImg}
                     style={styles.cardImage}
@@ -859,7 +960,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 44,
     paddingHorizontal: 12,
     paddingBottom: 12,
   },

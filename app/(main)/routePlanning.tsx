@@ -13,6 +13,7 @@ import MapSnapshot, { WaypointPin } from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
@@ -734,6 +735,50 @@ export default function RoutePlanningScreen() {
   };
 
   const departure = waypoints[0]?.result ?? null;
+  const destinationStop = waypoints[waypoints.length - 1];
+  const destinationResult = destinationStop?.result ?? null;
+  const destinationCoords =
+    destinationResult &&
+    Number.isFinite(destinationResult.lat) &&
+    Number.isFinite(destinationResult.lng)
+      ? { lat: destinationResult.lat, lng: destinationResult.lng }
+      : null;
+  const destinationLabel =
+    destinationResult?.name ?? destAddress ?? t("destination");
+  const navigationModeForIntent = selected === "transit" ? "car" : selected;
+
+  const handleStartNavigation = async () => {
+    if (!destinationCoords) return;
+
+    const coords: Coordinate[] = summaryWaypoints
+      .map((w) => {
+        if (w.isCurrentPosition && gpsSnapshot) {
+          return { latitude: gpsSnapshot.lat, longitude: gpsSnapshot.lng };
+        }
+        if (w.result) {
+          return { latitude: w.result.lat, longitude: w.result.lng };
+        }
+        return null;
+      })
+      .filter((c): c is Coordinate => c !== null);
+
+    try {
+      if (coords.length > 2) {
+        await routeService.getMultiStepRoute(coords, navigationModeForIntent);
+      }
+    } catch {}
+
+    router.push({
+      pathname: "/navigate/standard",
+      params: {
+        lat: String(destinationCoords.lat),
+        lng: String(destinationCoords.lng),
+        mode: navigationModeForIntent,
+        name: destinationLabel,
+        multi: coords.length > 2 ? "1" : undefined,
+      },
+    });
+  };
 
   const validCount = waypoints.filter(
     (w) => w.result !== null || w.isCurrentPosition,
@@ -769,7 +814,6 @@ export default function RoutePlanningScreen() {
         lng: round4(position.longitude),
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position]);
 
   const prevSummaryRef = React.useRef(summaryWaypoints);
@@ -923,7 +967,12 @@ export default function RoutePlanningScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar
+        hidden
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
 
       <View
         style={[
@@ -1235,7 +1284,10 @@ export default function RoutePlanningScreen() {
               <TouchableOpacity
                 key={mode.id}
                 style={[styles.modeCard, isSelected && styles.modeCardSelected]}
-                onPress={() => setSelected(mode.id)}
+                onPress={() => {
+                  if (mode.id !== "transit") setSelected(mode.id);
+                  else showCommingSoonToast();
+                }}
                 activeOpacity={0.85}
               >
                 <View style={styles.modeLeft}>
@@ -1307,16 +1359,21 @@ export default function RoutePlanningScreen() {
             </View>
             <TouchableOpacity
               style={[styles.startButton, { backgroundColor: "#1a2f42" }]}
+              onPress={handleStartNavigation}
               activeOpacity={0.8}
             >
-              <MaterialIcons name="map" size={22} color="#90adcb" />
+              <MaterialIcons name="near-me" size={22} color="#90adcb" />
               <Text style={[styles.startButtonText, { color: "#90adcb" }]}>
-                {t("viewPreview")}
+                {t("startNavigation")}
               </Text>
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity style={styles.startButton} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStartNavigation}
+            activeOpacity={0.9}
+          >
             <Text style={styles.startButtonText}>{t("startNavigation")}</Text>
             <MaterialIcons name="near-me" size={22} color="#fff" />
           </TouchableOpacity>
@@ -1331,7 +1388,12 @@ export default function RoutePlanningScreen() {
       >
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
-            <StatusBar barStyle="light-content" />
+            <StatusBar
+              hidden
+              translucent
+              backgroundColor="transparent"
+              barStyle="light-content"
+            />
 
             <View
               style={[

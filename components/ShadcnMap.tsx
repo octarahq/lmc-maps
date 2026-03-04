@@ -19,13 +19,35 @@ const ShadcnMap = React.forwardRef<any, Props>(
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-      html,body,#map{ height:100%; margin:0; padding:0; background:#000; }
+      html, body { height:100%; margin:0; padding:0; background:#000; overflow:hidden; }
+      #mapViewport {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #mapRotate {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 170vmax;
+        height: 170vmax;
+        transform: translate(-50%, -50%);
+        transform-origin: 50% 50%;
+        will-change: transform;
+      }
+      #map { width:100%; height:100%; }
       .leaflet-container, .leaflet-pane, .leaflet-tile { background: #000 !important; }
       .leaflet-control-attribution { display: none !important; }
     </style>
   </head>
   <body>
-    <div id="map"></div>
+    <div id="mapViewport">
+      <div id="mapRotate">
+        <div id="map"></div>
+      </div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
       const map = L.map('map', { 
@@ -61,9 +83,60 @@ const ShadcnMap = React.forwardRef<any, Props>(
 
       map.on('dragstart', sendMove);       
       map.on('zoomend', function(){ try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'zoomChanged', zoom: map.getZoom() })); } catch(e) {} });
+      var currentBearing = 0;
+      var targetBearing = 0;
+      var bearingRaf = null;
       var userMarker = null;
       var markers = [];
       var routePolyline = null;
+      var overlayPolylines = [];
+
+      function normalizeBearing(angle) {
+        var a = Number(angle) || 0;
+        a = ((a % 360) + 360) % 360;
+        return a;
+      }
+
+      function shortestDelta(fromDeg, toDeg) {
+        var d = toDeg - fromDeg;
+        while (d > 180) d -= 360;
+        while (d < -180) d += 360;
+        return d;
+      }
+
+      function applyBearingTransform(angle) {
+        var rotateEl = document.getElementById('mapRotate');
+        if (!rotateEl) return;
+
+        rotateEl.style.transition = 'none';
+        rotateEl.style.transform = 'translate(-50%, -50%) rotate(' + (-angle) + 'deg)';
+      }
+
+      function animateBearingStep() {
+        var delta = shortestDelta(currentBearing, targetBearing);
+
+        if (Math.abs(delta) < 0.2) {
+          currentBearing = targetBearing;
+          applyBearingTransform(currentBearing);
+          bearingRaf = null;
+          return;
+        }
+
+        var easedStep = delta * 0.18;
+        var clampedStep = Math.max(-10, Math.min(10, easedStep));
+        currentBearing = currentBearing + clampedStep;
+
+        applyBearingTransform(currentBearing);
+        bearingRaf = requestAnimationFrame(animateBearingStep);
+      }
+
+      function applyBearing(nextBearing) {
+        targetBearing = normalizeBearing(nextBearing);
+
+        if (bearingRaf == null) {
+          bearingRaf = requestAnimationFrame(animateBearingStep);
+        }
+      }
 
       function handleMessage(msg) {
         try {
@@ -80,7 +153,17 @@ const ShadcnMap = React.forwardRef<any, Props>(
           if (m.type === 'setZoom') { map.setZoom(m.zoom, { animate: m.animate !== false }); }
           if (m.type === 'zoomBy') { map.setZoom(map.getZoom() + (m.delta || 0), { animate: m.animate !== false }); }
           if (m.type === 'panTo') {
-            map.panTo([m.lat, m.lng], { animate: m.animate !== false, duration: m.duration || 0.6 });
+            if (m.zoom != null) {
+              map.setView([m.lat, m.lng], m.zoom, { animate: m.animate !== false, duration: m.duration || 0.6 });
+            } else {
+              map.panTo([m.lat, m.lng], { animate: m.animate !== false, duration: m.duration || 0.6 });
+            }
+            if (m.bearing != null) {
+              applyBearing(m.bearing);
+            }
+          }
+          if (m.type === 'setBearing') {
+            applyBearing(m.bearing || 0);
           }
           if (m.type === 'fitBounds') {
             map.invalidateSize();
@@ -124,8 +207,19 @@ const ShadcnMap = React.forwardRef<any, Props>(
             markers = [];
           }
           if (m.type === 'addMarker') {
-            var mIcon = L.divIcon({ className: '', html: m.html, iconSize: m.iconSize || [28,36], iconAnchor: m.iconAnchor || [14,36] });
-            var mk = L.marker([m.lat, m.lng], { icon: mIcon }).addTo(map);
+            let mk;
+            if (m.circle) {
+              mk = L.circle([m.lat, m.lng], {
+                radius: m.radius || 6,
+                color: m.color || '#0d7ff2',
+                fillColor: m.fillColor || (m.color || '#0d7ff2'),
+                fillOpacity: m.fillOpacity != null ? m.fillOpacity : 1,
+                weight: m.weight || 2,
+              }).addTo(map);
+            } else {
+              var mIcon = L.divIcon({ className: '', html: m.html, iconSize: m.iconSize || [28,36], iconAnchor: m.iconAnchor || [14,36] });
+              mk = L.marker([m.lat, m.lng], { icon: mIcon }).addTo(map);
+            }
             markers.push(mk);
           }
           if (m.type === 'clearPolyline') {
@@ -138,6 +232,41 @@ const ShadcnMap = React.forwardRef<any, Props>(
               if (m.dashArray) polylineOpts.dashArray = m.dashArray;
               routePolyline = L.polyline(m.latlngs, polylineOpts).addTo(map);
             }
+          }
+          if (m.type === 'addOverlayPolyline') {
+            if (m.latlngs && m.latlngs.length > 1) {
+              var polylineOpts = { color: m.color || '#fff', weight: m.weight || 4, opacity: m.opacity || 1 };
+              var overlay = L.polyline(m.latlngs, polylineOpts).addTo(map);
+              overlayPolylines.push(overlay);
+              
+              if (m.arrow) {
+                var p1 = L.latLng(m.latlngs[m.latlngs.length - 2]);
+                var p2 = L.latLng(m.latlngs[m.latlngs.length - 1]);
+                
+                var pixelP1 = map.latLngToLayerPoint(p1);
+                var pixelP2 = map.latLngToLayerPoint(p2);
+                
+                var dx = pixelP2.x - pixelP1.x;
+                var dy = pixelP2.y - pixelP1.y;
+                var angle = Math.atan2(dy, dx);
+                
+                var len = 8;
+                
+                var a1 = angle + Math.PI * 0.85; 
+                var a2 = angle - Math.PI * 0.85;
+                
+                var tip1 = map.layerPointToLatLng([pixelP2.x + Math.cos(a1) * len, pixelP2.y + Math.sin(a1) * len]);
+                var tip2 = map.layerPointToLatLng([pixelP2.x + Math.cos(a2) * len, pixelP2.y + Math.sin(a2) * len]);
+                
+                var triangleOpts = { stroke: true, color: m.color || '#fff', weight: 3, lineJoin: 'round', lineCap: 'round', fill: true, fillColor: m.color || '#fff', fillOpacity: 1 };
+                var arrowHead = L.polygon([tip1, p2, tip2], triangleOpts).addTo(map);
+                overlayPolylines.push(arrowHead);
+              }
+            }
+          }
+          if (m.type === 'clearOverlayPolylines') {
+            overlayPolylines.forEach(function(p){ map.removeLayer(p); });
+            overlayPolylines = [];
           }
           if (m.type === 'setBaseLayer') {
             var layer = m.layer || 'standard';

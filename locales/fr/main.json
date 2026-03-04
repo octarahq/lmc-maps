@@ -31,5 +31,8 @@
     "darkMap": "Carte sombre",
     "traffic": "Trafic",
     "publicTransport": "Transports en commun"
+  },
+  "toasts": {
+    "comingSoon": "Cette fonctionnalité n'est pas encore disponible. Elle arrivera bientôt."
   }
 }

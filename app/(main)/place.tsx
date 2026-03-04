@@ -1,12 +1,12 @@
 import { SavePlaceModal } from "@/app/(main)/_components/SavePlaceModal";
 import {
-  AddressIcon,
-  BackIcon,
-  BookmarkIcon,
-  CallIcon,
-  DirectionsIcon,
-  ShareIcon,
-  WebIcon,
+    AddressIcon,
+    BackIcon,
+    BookmarkIcon,
+    CallIcon,
+    DirectionsIcon,
+    ShareIcon,
+    WebIcon,
 } from "@/assets/icons";
 import ScheduleIcon from "@/assets/icons/ScheduleIcon";
 import MapSnapshot from "@/components/MapSnapshot";
@@ -19,18 +19,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  ImageBackground,
-  Linking,
-  Platform,
-  ScrollView,
-  Share,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
+    ActivityIndicator,
+    ImageBackground,
+    Linking,
+    Platform,
+    ScrollView,
+    Share,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -49,6 +49,7 @@ export default function PlaceDetailScreen() {
     useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top - 10, 4);
   const { t } = createTranslator("place");
   const [loading, setLoading] = useState(true);
   const [details, setDetails] = useState<PlaceDetails | null>(null);
@@ -163,9 +164,14 @@ export default function PlaceDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar
+        hidden
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
+      />
 
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: topInset }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.iconButton}

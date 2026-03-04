@@ -2,15 +2,17 @@ import { CoffeeIcon, FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
 import MapProvider from "@/components/map";
 import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React from "react";
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import MapOverlay from "./_components/MapOverlay";
 
@@ -28,7 +30,12 @@ export default function MainScreen() {
   return (
     <MapProvider style={{ flex: 1 }}>
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar
+          hidden
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
         <MapOverlay blockMap={blockMap} />
         <BottomSheet
           ref={sheetRef}
@@ -50,37 +57,49 @@ export default function MainScreen() {
                 : t("sheet.exploreArea")}
             </Text>
             <View style={styles.itemsContainer}>
-              <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => showCommingSoonToast()}
+              >
                 <View style={styles.itemBox}>
                   <GasIcon />
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.gas")}</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => showCommingSoonToast()}
+              >
                 <View style={styles.itemBox}>
                   <FoodIcon />
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.food")}</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => showCommingSoonToast()}
+              >
                 <View style={styles.itemBox}>
                   <CoffeeIcon />
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.coffee")}</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => showCommingSoonToast()}
+              >
                 <View style={styles.itemBox}>
                   <ParkingIcon />
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.parking")}</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </BottomSheetView>
         </BottomSheet>

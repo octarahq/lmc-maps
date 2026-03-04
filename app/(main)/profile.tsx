@@ -1,11 +1,17 @@
 import { createTranslator } from "@/i18n";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = createTranslator("profile");
+
+  useEffect(() => {
+    showCommingSoonToast();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t("title")}</Text>

@@ -4,9 +4,9 @@ import React, { useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import {
-  departureSvg,
-  destinationSvg,
-  waypointSvg,
+    departureSvg,
+    destinationSvg,
+    waypointSvg,
 } from "@/assets/icons/svgStrings";
 
 export type WaypointPin = {
@@ -145,8 +145,12 @@ function MapSnapshotInner({
       });
 
       if (valid.length >= 2) {
-        const lats = valid.map((p) => p.lat);
-        const lngs = valid.map((p) => p.lng);
+        const fitPoints =
+          routeCoords && routeCoords.length >= 2
+            ? routeCoords.map((c) => ({ lat: c.latitude, lng: c.longitude }))
+            : valid;
+        const lats = fitPoints.map((p) => p.lat);
+        const lngs = fitPoints.map((p) => p.lng);
         post({
           type: "fitBounds",
           bounds: [

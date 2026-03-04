@@ -4,6 +4,8 @@ import React from "react";
 type Position = {
   latitude: number;
   longitude: number;
+  speed?: number | null;
+  heading?: number | null;
   city?: string | null;
   country?: string | null;
 };
@@ -35,6 +37,8 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
   const lastRawRef = React.useRef<{
     latitude: number;
     longitude: number;
+    speed: number | null;
+    heading: number | null;
     timestamp: number;
   } | null>(null);
   const animRef = React.useRef<number | null>(null);
@@ -49,6 +53,8 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
         setPosition({
           latitude: from.latitude + (to.latitude - from.latitude) * t,
           longitude: from.longitude + (to.longitude - from.longitude) * t,
+          speed: to.speed,
+          heading: to.heading,
           city: to.city,
           country: to.country,
         });
@@ -86,12 +92,16 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
       const newPos: Position = {
         latitude: coords.latitude,
         longitude: coords.longitude,
+        speed: coords.speed,
+        heading: coords.heading,
         city,
         country,
       };
       lastRawRef.current = {
         latitude: coords.latitude,
         longitude: coords.longitude,
+        speed: coords.speed,
+        heading: coords.heading,
         timestamp: now,
       };
       if (positionRef.current) {
@@ -127,15 +137,17 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
           timeInterval: 1000,
         },
         (pos) => {
-          const { latitude, longitude } = pos.coords;
+          const { latitude, longitude, speed, heading } = pos.coords;
           const timestamp = pos.timestamp || Date.now();
-          const newRaw = { latitude, longitude, timestamp };
+          const newRaw = { latitude, longitude, speed, heading, timestamp };
           const prevRaw = lastRawRef.current;
           lastRawRef.current = newRaw;
 
           const newPos: Position = {
             latitude,
             longitude,
+            speed,
+            heading,
             city: positionRef.current?.city || null,
             country: positionRef.current?.country || null,
           };
@@ -176,6 +188,8 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
             setPosition({
               latitude: lastKnown.coords.latitude,
               longitude: lastKnown.coords.longitude,
+              speed: lastKnown.coords.speed,
+              heading: lastKnown.coords.heading,
               city: null,
               country: null,
             });

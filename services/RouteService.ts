@@ -19,9 +19,16 @@ export interface NavigationData {
   totalDistance: number;
   steps: {
     instruction: string;
+    name?: string;
     distance: number;
     duration: number;
     coordinates?: [number, number][];
+    maneuver?: {
+      type?: string;
+      modifier?: string;
+      exit?: number;
+      location?: [number, number];
+    };
   }[];
 }
 
@@ -87,6 +94,7 @@ export interface RouteService {
   isOffRoute: boolean;
   updateRouteData: (newRouteData: any) => void;
   isFromCache: boolean;
+  getSpeedLimit: (points: Coordinate[]) => Promise<string | null>;
 }
 
 export type TransportMode = "driving" | "walking" | "bicycling";
@@ -738,6 +746,7 @@ export function useRouteService(): RouteService {
       setIsOsrmAvailable(true);
       setLastOsrmCheck(Date.now());
       setRoutingHost(result.host);
+      setLastRawRouteData(result.rawData);
 
       if (result.routes.length > 0) {
         if (DEBUG_CACHE_ENABLED) {
@@ -967,7 +976,8 @@ export function useRouteService(): RouteService {
     try {
       if (lastRawRouteData.routes && lastRawRouteData.routes[0]) {
         const route = lastRawRouteData.routes[0];
-        const steps = route.legs?.[0]?.steps || [];
+        const legs = route.legs || [];
+        const steps = legs.flatMap((leg: any) => leg.steps || []);
 
         return {
           routeData: lastRawRouteData,
@@ -975,9 +985,19 @@ export function useRouteService(): RouteService {
           totalDistance: route.distance || 0,
           steps: steps.map((step: any) => ({
             instruction: step.maneuver?.instruction || step.name || "",
+            name: step.name || undefined,
             distance: step.distance || 0,
             duration: step.duration || 0,
             coordinates: step.geometry?.coordinates,
+            maneuver: {
+              type: step.maneuver?.type,
+              modifier: step.maneuver?.modifier,
+              exit:
+                typeof step.maneuver?.exit === "number"
+                  ? step.maneuver.exit
+                  : undefined,
+              location: step.maneuver?.location || undefined,
+            },
           })),
         };
       }
@@ -996,6 +1016,7 @@ export function useRouteService(): RouteService {
             distance: step.distance || 0,
             duration: step.duration || 0,
             coordinates: step.way_points ? [step.way_points] : undefined,
+            maneuver: undefined,
           })),
         };
       }
@@ -1013,6 +1034,10 @@ export function useRouteService(): RouteService {
             distance: maneuver.length || 0,
             duration: maneuver.time || 0,
             coordinates: undefined,
+            maneuver: {
+              type: maneuver.type || maneuver.action,
+              modifier: maneuver.direction || undefined,
+            },
           })),
         };
       }
@@ -1053,6 +1078,65 @@ export function useRouteService(): RouteService {
     }
   };
 
+  const getSpeedLimit = async (
+    points: Coordinate[],
+  ): Promise<string | null> => {
+    if (!points || points.length < 2) return null;
+
+    const body = {
+      shape: points.map((p) => ({ lat: p.latitude, lon: p.longitude })),
+      costing: "auto",
+      shape_match: "map_snap",
+      filters: {
+        attributes: ["speed_limit", "speed", "edge.names"],
+      },
+    };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    try {
+      const response = await fetch(
+        "https://valhalla1.openstreetmap.de/trace_attributes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": "LMC-Maps-App/1.0",
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        },
+      );
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data.edges && data.edges.length > 0) {
+        for (const edge of data.edges) {
+          if (edge.speed_limit && edge.speed_limit > 0) {
+            return edge.speed_limit.toString();
+          }
+        }
+
+        for (const edge of data.edges) {
+          if (edge.speed && edge.speed > 0) {
+            return edge.speed.toString();
+          }
+        }
+      }
+      return null;
+    } catch {
+      clearTimeout(timeout);
+      return null;
+    }
+  };
+
   return {
     routeCoords,
     destination,
@@ -1084,6 +1168,7 @@ export function useRouteService(): RouteService {
     isOffRoute,
     updateRouteData,
     isFromCache,
+    getSpeedLimit,
   };
 }
 

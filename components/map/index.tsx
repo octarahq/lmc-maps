@@ -1,16 +1,16 @@
 import ShadcnMap from "@/components/ShadcnMap";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  LayoutChangeEvent,
-  StyleSheet,
-  View,
-  useWindowDimensions,
+    LayoutChangeEvent,
+    StyleSheet,
+    View,
+    useWindowDimensions,
 } from "react-native";
 
 import { usePosition } from "@/contexts/PositionContext";
 import Controls from "./Controls";
 import MapCtx, { MapControls } from "./MapContext";
-import { MapLayersProvider, useMapLayers } from "./MapLayersContext";
+import { useMapLayers } from "./MapLayersContext";
 
 type Props = {
   style?: any;
@@ -26,15 +26,13 @@ export default function MapProvider({
   showControls = true,
 }: Props) {
   return (
-    <MapLayersProvider>
-      <MapProviderContent
-        style={style}
-        showUserLocation={showUserLocation}
-        showControls={showControls}
-      >
-        {children}
-      </MapProviderContent>
-    </MapLayersProvider>
+    <MapProviderContent
+      style={style}
+      showUserLocation={showUserLocation}
+      showControls={showControls}
+    >
+      {children}
+    </MapProviderContent>
   );
 }
 
