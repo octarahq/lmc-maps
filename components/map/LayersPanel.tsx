@@ -2,6 +2,7 @@ import { CarIcon, CloseIcon, MoonStarsIcon, TrainIcon } from "@/assets/icons";
 import SvgPathIcon from "@/assets/icons/SvgPathIcon";
 import { useHapticSettings } from "@/contexts/HapticSettingsContext";
 import { createTranslator } from "@/i18n";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
@@ -144,8 +145,9 @@ export default function LayersPanel({ onClose }: LayersPanelProps) {
           <Switch
             value={layers.traffic}
             onValueChange={(v) => {
-              triggerHaptic();
-              layers.setTraffic(v);
+              return showCommingSoonToast();
+              // triggerHaptic();
+              // layers.setTraffic(v);
             }}
             trackColor={{
               false: "rgba(255,255,255,0.1)",
@@ -168,8 +170,9 @@ export default function LayersPanel({ onClose }: LayersPanelProps) {
           <Switch
             value={layers.publicTransport}
             onValueChange={(v) => {
-              triggerHaptic();
-              layers.setPublicTransport(v);
+              return showCommingSoonToast();
+              // triggerHaptic();
+              // layers.setPublicTransport(v);
             }}
             trackColor={{
               false: "rgba(255,255,255,0.1)",
