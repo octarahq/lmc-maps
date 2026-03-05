@@ -2,6 +2,10 @@ import { CoffeeIcon, FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
 import MapProvider from "@/components/map";
 import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
+import {
+  telemetryFeatureUsed,
+  telemetryNavigationStart,
+} from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -26,6 +30,10 @@ export default function MainScreen() {
   );
   const [blockMap, setBlockMap] = React.useState(false);
   const pos = usePosition();
+
+  React.useEffect(() => {
+    telemetryNavigationStart("home_screen");
+  }, []);
 
   return (
     <MapProvider style={{ flex: 1 }}>
@@ -59,7 +67,10 @@ export default function MainScreen() {
             <View style={styles.itemsContainer}>
               <TouchableOpacity
                 style={styles.item}
-                onPress={() => showCommingSoonToast()}
+                onPress={() => {
+                  telemetryFeatureUsed("home_explore_gas");
+                  showCommingSoonToast();
+                }}
               >
                 <View style={styles.itemBox}>
                   <GasIcon />
@@ -70,7 +81,10 @@ export default function MainScreen() {
 
               <TouchableOpacity
                 style={styles.item}
-                onPress={() => showCommingSoonToast()}
+                onPress={() => {
+                  telemetryFeatureUsed("home_explore_food");
+                  showCommingSoonToast();
+                }}
               >
                 <View style={styles.itemBox}>
                   <FoodIcon />
@@ -81,7 +95,10 @@ export default function MainScreen() {
 
               <TouchableOpacity
                 style={styles.item}
-                onPress={() => showCommingSoonToast()}
+                onPress={() => {
+                  telemetryFeatureUsed("home_explore_coffee");
+                  showCommingSoonToast();
+                }}
               >
                 <View style={styles.itemBox}>
                   <CoffeeIcon />
@@ -92,7 +109,10 @@ export default function MainScreen() {
 
               <TouchableOpacity
                 style={styles.item}
-                onPress={() => showCommingSoonToast()}
+                onPress={() => {
+                  telemetryFeatureUsed("home_explore_parking");
+                  showCommingSoonToast();
+                }}
               >
                 <View style={styles.itemBox}>
                   <ParkingIcon />

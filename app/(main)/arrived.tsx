@@ -1,14 +1,18 @@
 import MapSnapshot from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
+import { usePosition } from "@/contexts/PositionContext";
+import { createTranslator } from "@/i18n";
+import { telemetryNavigationStart } from "@/services/TelemetryService";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -44,12 +48,15 @@ const formatDistance = (meters: number): string => {
 };
 
 export default function ArrivedScreen() {
+  const { t } = createTranslator("navigate");
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const topInset = Math.max(insets.top - 10, 4);
   const params = useLocalSearchParams<RouteParams>();
 
-  const destinationName = (params.name || "Destination").trim();
+  const destinationName = (
+    params.name || (t("destinationFallback") as string)
+  ).trim();
   const totalDuration = parseNumber(params.totalDuration, 0);
   const totalDistance = parseNumber(params.totalDistance, 0);
   const avgSpeed = parseNumber(params.avgSpeed, 0);
@@ -59,27 +66,25 @@ export default function ArrivedScreen() {
   const destLat = parseNumber(params.destLat, NaN);
   const destLng = parseNumber(params.destLng, NaN);
 
-  const hasMapPoints =
-    Number.isFinite(startLat) &&
-    Number.isFinite(startLng) &&
-    Number.isFinite(destLat) &&
-    Number.isFinite(destLng);
+  const positionCtx = usePosition();
+  const userPos = positionCtx.position;
+
+  const hasDestination = Number.isFinite(destLat) && Number.isFinite(destLng);
 
   const pins = React.useMemo(() => {
-    if (!hasMapPoints) return [];
-    return [
-      { lat: startLat, lng: startLng, type: "departure" as const },
-      { lat: destLat, lng: destLng, type: "destination" as const },
-    ];
-  }, [hasMapPoints, startLat, startLng, destLat, destLng]);
+    if (!hasDestination) return [];
+    return [{ lat: destLat, lng: destLng, type: "destination" as const }];
+  }, [hasDestination, destLat, destLng]);
 
-  const routeCoords = React.useMemo(() => {
-    if (!hasMapPoints) return [];
-    return [
-      { latitude: startLat, longitude: startLng },
-      { latitude: destLat, longitude: destLng },
-    ];
-  }, [hasMapPoints, startLat, startLng, destLat, destLng]);
+  React.useEffect(() => {
+    telemetryNavigationStart("arrival_screen", {
+      total_distance_m: totalDistance,
+      total_duration_min: Math.round(totalDuration / 60),
+      mode: params.mode || "car",
+    });
+  }, [params.mode, totalDistance, totalDuration]);
+
+  const routeCoords: { latitude: number; longitude: number }[] = [];
 
   return (
     <View style={[styles.safe, { paddingTop: topInset }]}>
@@ -96,19 +101,20 @@ export default function ArrivedScreen() {
           >
             <MaterialIcons name="close" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Trip Summary</Text>
+          <Text style={styles.headerTitle}>{t("arrived.tripSummary")}</Text>
           <View style={styles.iconSpacer} />
         </View>
 
         <View style={styles.hero}>
-          <Text style={styles.heroTitle}>You have arrived</Text>
+          <Text style={styles.heroTitle}>{t("arrived.youHaveArrived")}</Text>
         </View>
 
         <View style={styles.mapCard}>
-          {hasMapPoints ? (
+          {hasDestination ? (
             <MapSnapshot
               pins={pins}
-              routeCoords={routeCoords}
+              lat={userPos?.latitude}
+              lng={userPos?.longitude}
               style={styles.mapSnapshot}
             />
           ) : (
@@ -131,7 +137,7 @@ export default function ArrivedScreen() {
                 size={18}
                 color={Colors.dark.primary}
               />
-              <Text style={styles.statLabel}>TIME</Text>
+              <Text style={styles.statLabel}>{t("arrived.time")}</Text>
             </View>
             <Text style={styles.statValue}>
               {formatDuration(totalDuration)}
@@ -145,7 +151,7 @@ export default function ArrivedScreen() {
                 size={18}
                 color={Colors.dark.primary}
               />
-              <Text style={styles.statLabel}>DISTANCE</Text>
+              <Text style={styles.statLabel}>{t("arrived.distance")}</Text>
             </View>
             <Text style={styles.statValue}>
               {formatDistance(totalDistance)}
@@ -159,7 +165,7 @@ export default function ArrivedScreen() {
                 size={18}
                 color={Colors.dark.primary}
               />
-              <Text style={styles.statLabel}>AVG SPEED</Text>
+              <Text style={styles.statLabel}>{t("arrived.avgSpeed")}</Text>
             </View>
             <Text style={styles.statValue}>
               {Math.round(Math.max(0, avgSpeed))} km/h
@@ -173,16 +179,16 @@ export default function ArrivedScreen() {
             onPress={() => router.replace("/")}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>Done</Text>
+            <Text style={styles.primaryButtonText}>{t("arrived.done")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => router.replace("/search")}
+            onPress={() => showCommingSoonToast()}
             activeOpacity={0.85}
           >
             <Text style={styles.secondaryButtonText}>
-              Trouver un parking et finir a pied
+              {t("arrived.findParking")}
             </Text>
           </TouchableOpacity>
         </View>

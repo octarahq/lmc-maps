@@ -3,6 +3,13 @@ import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
+import {
+  telemetryCrash,
+  telemetryError,
+  telemetryFeatureUsed,
+  telemetryNavigationStart,
+  telemetryNavigationStop,
+} from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { clearRecentTrips, getRecentTrips } from "@/utils/recentTrips";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -167,8 +174,13 @@ export default function SearchScreen() {
     let mounted = true;
     if (lastAddressQueryRef.current === q) return;
 
+    const startTime = Date.now();
     const t = setTimeout(async () => {
       try {
+        telemetryNavigationStart("search", {
+          query_length: q.length,
+        });
+
         const results = await SearchEngineService.photonSearch(q, {
           limit: 10,
           lat: position?.latitude,
@@ -178,9 +190,38 @@ export default function SearchScreen() {
         if (mounted) {
           lastAddressQueryRef.current = q;
           setAddressResults(results);
+
+          const duration = Date.now() - startTime;
+          telemetryNavigationStop({
+            duration_ms: duration,
+            success: true,
+            results_count: results.length,
+            query_type: "address",
+          });
         }
-      } catch {
-        if (mounted) setAddressResults([]);
+      } catch (error) {
+        if (mounted) {
+          setAddressResults([]);
+          const duration = Date.now() - startTime;
+
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          if (
+            errorMsg.includes("network") ||
+            errorMsg.includes("timeout") ||
+            errorMsg.includes("fetch")
+          ) {
+            telemetryError("SearchNetworkError", errorMsg, "", {
+              query_length: q.length,
+              duration_ms: duration,
+            });
+          } else {
+            telemetryCrash(errorMsg, "", {
+              query_length: q.length,
+              duration_ms: duration,
+            });
+          }
+        }
       }
     }, 300);
 
@@ -188,7 +229,7 @@ export default function SearchScreen() {
       mounted = false;
       clearTimeout(t);
     };
-  }, [query]);
+  }, [query, position?.latitude, position?.longitude]);
 
   return (
     <View style={styles.container}>
@@ -346,6 +387,9 @@ export default function SearchScreen() {
                         title={title || t("unknown_place")}
                         subtitle={subtitle}
                         onPress={() => {
+                          telemetryFeatureUsed("search_result_selected", {
+                            result_type: r.properties?.osm_value || "unknown",
+                          });
                           router.push({
                             pathname: "/(main)/place",
                             params: {
@@ -360,6 +404,9 @@ export default function SearchScreen() {
                           });
                         }}
                         onArrowPress={() => {
+                          telemetryFeatureUsed("search_result_navigation", {
+                            result_type: r.properties?.osm_value || "unknown",
+                          });
                           router.push({
                             pathname: "/(main)/routePlanning",
                             params: {
@@ -416,6 +463,9 @@ export default function SearchScreen() {
                   {recentTrips.length > 0 ? (
                     <TouchableOpacity
                       onPress={async () => {
+                        telemetryFeatureUsed("clear_recent_trips", {
+                          trips_count: recentTrips.length,
+                        });
                         await clearRecentTrips();
                         setRecentTrips([]);
                         setVisibleRecentCount(5);
@@ -439,6 +489,9 @@ export default function SearchScreen() {
                       title={r.name || r.address || ""}
                       subtitle={r.address || ""}
                       onPress={() => {
+                        telemetryFeatureUsed("recent_trip_selected", {
+                          trip_index: recentTrips.indexOf(r),
+                        });
                         router.push({
                           pathname: "/(main)/place",
                           params: {
@@ -456,9 +509,12 @@ export default function SearchScreen() {
                 {recentTrips.length > visibleRecentCount && (
                   <TouchableOpacity
                     style={{ padding: 8 }}
-                    onPress={() =>
-                      setVisibleRecentCount((c) => Math.min(10, c + 5))
-                    }
+                    onPress={() => {
+                      telemetryFeatureUsed("show_more_recent_trips", {
+                        total_trips: recentTrips.length,
+                      });
+                      setVisibleRecentCount((c) => Math.min(10, c + 5));
+                    }}
                   >
                     <Text style={{ color: "#0d7ff2" }}>
                       {t("show_more") || "Voir plus"}

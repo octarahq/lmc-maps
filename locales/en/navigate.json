@@ -54,4 +54,22 @@
     "rampRight": "Take the ramp on the right",
     "rampRightRoad": "Take the ramp on the right onto {{road}}"
   }
+  ,
+  "arrived": {
+    "tripSummary": "Trip Summary",
+    "youHaveArrived": "You have arrived",
+    "time": "TIME",
+    "distance": "DISTANCE",
+    "avgSpeed": "AVG SPEED",
+    "done": "Done",
+    "findParking": "Find parking and finish on foot"
+  },
+  "update": {
+    "title": "Update available",
+    "description": "A new version is available",
+    "downloading": "Downloading in progress",
+    "downloadingDesc": "Please wait while the update is being downloaded and installed...",
+    "download": "Download and install",
+    "later": "Later"
+  }
 }

@@ -6,6 +6,11 @@ import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
 import type { Coordinate } from "@/services/RouteService";
 import { useRouteService } from "@/services/RouteService";
+import {
+  telemetryFeatureUsed,
+  telemetryNavigationStart,
+  telemetryNavigationStop,
+} from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { addRecentTrip } from "@/utils/recentTrips";
 import { snapPointsPercent } from "@/utils/snapPoints";
@@ -32,12 +37,15 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 type NavigationMode = "car" | "walk" | "bike";
 
-const OFF_ROUTE_RECALC_DISTANCE_M = 5;
+const OFF_ROUTE_RECALC_DISTANCE_M = 10;
 const FIRST_ON_ROUTE_TOLERANCE_M = 20;
 const OFF_ROUTE_RECALC_COOLDOWN_MS = 2000;
 const OFF_ROUTE_CHECK_INTERVAL_MS = 700;
+const OFF_ROUTE_RECALC_ERROR_COOLDOWN_MS = 10000;
+const OFF_ROUTE_RECALC_SUCCESS_COOLDOWN_MS = 5000;
 const MIN_GPS_STEP_DISTANCE_M = 1;
 const MAX_GPS_STEP_DISTANCE_M = 120;
+const REJOIN_RECALC_DISTANCE_M = 40;
 
 const MODE_TO_SERVICE: Record<NavigationMode, string> = {
   car: "driving",
@@ -151,6 +159,16 @@ export default function StandardNavigationScreen() {
   const suppressMapMove = React.useRef(false);
   const { height: screenHeight } = useWindowDimensions();
 
+  const navigationStartTrackedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!navigationStartTrackedRef.current && mapReady && position) {
+      navigationStartTrackedRef.current = true;
+      telemetryNavigationStart("live_navigation", {
+        mode: mode || "car",
+      });
+    }
+  }, [mapReady, position, mode]);
+
   const post = (obj: any) => {
     try {
       mapRef.current?.postMessage(JSON.stringify(obj));
@@ -219,7 +237,11 @@ export default function StandardNavigationScreen() {
   const autoRouteFetchedRef = React.useRef(false);
   const offRouteRecalcInFlightRef = React.useRef(false);
   const lastOffRouteRecalcAtRef = React.useRef(0);
+  const lastRecalcErrorAtRef = React.useRef(0);
+  const lastRecalcSuccessAtRef = React.useRef(0);
   const hasBeenOnRouteRef = React.useRef(false);
+  const waitingForRouteRef = React.useRef(false);
+  const lastLeftPositionRef = React.useRef<Coordinate | null>(null);
   const tripStartAtRef = React.useRef<number | null>(null);
   const tripDistanceMetersRef = React.useRef(0);
   const lastTripPointRef = React.useRef<Coordinate | null>(null);
@@ -264,6 +286,8 @@ export default function StandardNavigationScreen() {
     fetchKey.current = "";
     offRouteRecalcInFlightRef.current = false;
     lastOffRouteRecalcAtRef.current = 0;
+    lastRecalcErrorAtRef.current = 0;
+    lastRecalcSuccessAtRef.current = 0;
     hasArrivedRedirectRef.current = false;
     hasBeenOnRouteRef.current = false;
     tripStartAtRef.current = null;
@@ -356,10 +380,26 @@ export default function StandardNavigationScreen() {
       }
 
       if (distanceToRoute <= OFF_ROUTE_RECALC_DISTANCE_M) {
+        if (waitingForRouteRef.current) {
+          waitingForRouteRef.current = false;
+          lastLeftPositionRef.current = null;
+        }
         return;
       }
 
       const now = Date.now();
+      if (
+        now - lastRecalcErrorAtRef.current <
+        OFF_ROUTE_RECALC_ERROR_COOLDOWN_MS
+      ) {
+        return;
+      }
+      if (
+        now - lastRecalcSuccessAtRef.current <
+        OFF_ROUTE_RECALC_SUCCESS_COOLDOWN_MS
+      ) {
+        return;
+      }
       if (
         now - lastOffRouteRecalcAtRef.current <
         OFF_ROUTE_RECALC_COOLDOWN_MS
@@ -367,22 +407,72 @@ export default function StandardNavigationScreen() {
         return;
       }
 
+      const currentlyOnRoute = routeService.isOnRoute(
+        currentPos,
+        FIRST_ON_ROUTE_TOLERANCE_M,
+      );
+
+      if (!currentlyOnRoute) {
+        if (!waitingForRouteRef.current) {
+          waitingForRouteRef.current = true;
+          lastLeftPositionRef.current = currentPos;
+          lastOffRouteRecalcAtRef.current = now;
+          telemetryFeatureUsed("navigation_off_route", {
+            distance_to_route_m: Math.round(distanceToRoute),
+          });
+        }
+        return;
+      }
+
+      if (waitingForRouteRef.current) {
+        const left = lastLeftPositionRef.current;
+        waitingForRouteRef.current = false;
+        lastLeftPositionRef.current = null;
+        if (left) {
+          const movedSinceLeft = calculateDistance(left, currentPos);
+          if (movedSinceLeft <= REJOIN_RECALC_DISTANCE_M) {
+            return;
+          }
+        }
+      }
+
       offRouteRecalcInFlightRef.current = true;
       lastOffRouteRecalcAtRef.current = now;
 
-      routeService
-        .getRoute(
-          {
-            latitude: currentPos.latitude,
-            longitude: currentPos.longitude,
-          },
-          { latitude: destLat, longitude: destLng },
-          serviceMode,
-        )
-        .catch(() => {})
-        .finally(() => {
+      const performRecalc = async () => {
+        try {
+          let ok = false;
+          if (routeService.recalculateIfOffRoute) {
+            const res = await routeService.recalculateIfOffRoute(
+              currentPos,
+              serviceMode,
+            );
+            ok = res !== false && res !== null && res !== undefined;
+          } else {
+            const res = await routeService.getRoute(
+              {
+                latitude: currentPos.latitude,
+                longitude: currentPos.longitude,
+              },
+              { latitude: destLat, longitude: destLng },
+              serviceMode,
+            );
+            ok = !!res;
+          }
+
+          if (!ok) {
+            lastRecalcErrorAtRef.current = Date.now();
+          } else {
+            lastRecalcSuccessAtRef.current = Date.now();
+          }
+        } catch {
+          lastRecalcErrorAtRef.current = Date.now();
+        } finally {
           offRouteRecalcInFlightRef.current = false;
-        });
+        }
+      };
+
+      performRecalc();
     };
 
     checkOffRouteAndRecalculate();
@@ -547,6 +637,14 @@ export default function StandardNavigationScreen() {
       reliableDurationForSummary > 0
         ? (reliableDistanceForSummary / reliableDurationForSummary) * 3.6
         : Math.max(0, (position.speed ?? 0) * 3.6);
+
+    telemetryNavigationStop({
+      distance_m: Math.round(reliableDistanceForSummary),
+      duration_min: Math.round(reliableDurationForSummary / 60),
+      avg_speed_kmh: Math.round(averageSpeedKmh),
+      mode: requestedMode,
+      success: true,
+    });
 
     const startLatParam =
       startCoordinate?.latitude ??

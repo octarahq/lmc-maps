@@ -13,6 +13,12 @@ import MapSnapshot, { WaypointPin } from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
+import {
+  telemetryCrash,
+  telemetryFeatureUsed,
+  telemetryNavigationStart,
+  telemetryNavigationStop,
+} from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -763,10 +769,24 @@ export default function RoutePlanningScreen() {
       .filter((c): c is Coordinate => c !== null);
 
     try {
+      telemetryFeatureUsed("navigation_started", {
+        mode: navigationModeForIntent,
+        waypoint_count: coords.length,
+        has_alternative_routes: Object.values(routeAlternatives).some(
+          (arr) => arr && arr.length > 1,
+        ),
+      });
+
       if (coords.length > 2) {
         await routeService.getMultiStepRoute(coords, navigationModeForIntent);
       }
-    } catch {}
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      telemetryCrash(errorMsg, "", {
+        mode: navigationModeForIntent,
+        waypoint_count: coords.length,
+      });
+    }
 
     router.push({
       pathname: "/navigate/standard",
@@ -814,7 +834,7 @@ export default function RoutePlanningScreen() {
         lng: round4(position.longitude),
       });
     }
-  }, [position]);
+  }, [position, gpsSnapshot]);
 
   const prevSummaryRef = React.useRef(summaryWaypoints);
   React.useEffect(() => {
@@ -866,35 +886,71 @@ export default function RoutePlanningScreen() {
     const modes: ("car" | "walk" | "bike")[] = ["car", "walk", "bike"];
     setModesCalculating({ car: true, walk: true, bike: true });
 
-    const timers: number[] = [];
+    telemetryNavigationStart("route_calculation", {
+      waypoint_count: resolvedCoords.length,
+    });
+
+    let completed = 0;
+    let successCount = 0;
+    const distances: number[] = [];
+    const durations: number[] = [];
+
     modes.forEach((mode, index) => {
       const delay = index * 300;
-      const timer = setTimeout(async () => {
-        const alternatives = await routeService.getRoutes(
-          resolvedCoords,
-          modeToService(mode as TransportMode),
-          { alternatives: 3 },
-        );
+      setTimeout(async () => {
+        try {
+          const alternatives = await routeService.getRoutes(
+            resolvedCoords,
+            modeToService(mode as TransportMode),
+            { alternatives: 3 },
+          );
 
-        if (alternatives && alternatives.length > 0) {
-          setRouteAlternatives((prev) => ({
-            ...prev,
-            [mode as TransportMode]: alternatives,
-          }));
+          if (alternatives && alternatives.length > 0) {
+            successCount++;
+            distances.push(alternatives[0].distance);
+            durations.push(alternatives[0].duration);
 
-          setSelectedAlternativeIndex((prev) => ({
-            ...prev,
-            [mode]: 0,
-          }));
+            setRouteAlternatives((prev) => ({
+              ...prev,
+              [mode as TransportMode]: alternatives,
+            }));
 
-          setRouteResults((prev) => ({
-            ...prev,
-            [mode as TransportMode]: {
-              duration: alternatives[0].duration,
-              distance: alternatives[0].distance,
-              coords: alternatives[0].coords,
-            },
-          }));
+            setSelectedAlternativeIndex((prev) => ({
+              ...prev,
+              [mode]: 0,
+            }));
+
+            setRouteResults((prev) => ({
+              ...prev,
+              [mode as TransportMode]: {
+                duration: alternatives[0].duration,
+                distance: alternatives[0].distance,
+                coords: alternatives[0].coords,
+              },
+            }));
+          } else {
+            telemetryFeatureUsed("route_calculation_no_alternatives", {
+              mode,
+            });
+          }
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          telemetryCrash(errorMsg, "", {
+            mode,
+            waypoint_count: resolvedCoords.length,
+          });
+        } finally {
+          completed++;
+          if (completed === modes.length) {
+            telemetryNavigationStop({
+              success: successCount > 0,
+              modes_tried: modes.length,
+              success_count: successCount,
+              max_distance_m: distances.length ? Math.max(...distances) : 0,
+              max_duration_min: durations.length ? Math.max(...durations) : 0,
+            });
+          }
         }
 
         setModesCalculating((prev) => ({
@@ -902,12 +958,8 @@ export default function RoutePlanningScreen() {
           [mode]: false,
         }));
       }, delay);
-      timers.push(timer);
     });
 
-    return () => {
-      timers.forEach((timer) => clearTimeout(timer));
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedCoords]);
 

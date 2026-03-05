@@ -4,9 +4,9 @@ import React, { useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
 import {
-    departureSvg,
-    destinationSvg,
-    waypointSvg,
+  departureSvg,
+  destinationSvg,
+  waypointSvg,
 } from "@/assets/icons/svgStrings";
 
 export type WaypointPin = {
@@ -167,6 +167,9 @@ function MapSnapshotInner({
           zoom: 13,
           animate: false,
         });
+      }
+      if (lat != null && lng != null) {
+        post({ type: "setUserMarker", lat, lng, icon: "address" });
       }
       return;
     }

@@ -13,6 +13,12 @@ import MapSnapshot from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
 import { createTranslator } from "@/i18n";
 import FreePlaceDetailsService from "@/services/PlaceDetailService";
+import {
+    telemetryCrash,
+    telemetryFeatureUsed,
+    telemetryNavigationStart,
+    telemetryNavigationStop,
+} from "@/services/TelemetryService";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -73,7 +79,14 @@ export default function PlaceDetailScreen() {
           ? { url: webUrl, message: placeTitle }
           : { message: `${placeTitle}\n${webUrl}` },
       );
-    } catch {}
+      telemetryFeatureUsed("place_shared", {
+        place_type: osm_value || "unknown",
+      });
+    } catch {
+      telemetryFeatureUsed("place_share_error", {
+        place_type: osm_value || "unknown",
+      });
+    }
   };
 
   useEffect(() => {
@@ -82,13 +95,31 @@ export default function PlaceDetailScreen() {
         setLoading(false);
         return;
       }
+      const startTime = Date.now();
       try {
+        telemetryNavigationStart("place_details_load", {
+          place_type: osm_value || "unknown",
+        });
         const data = await FreePlaceDetailsService.fetchById(
           osm_type as "N" | "W" | "R",
           parseInt(osm_id as string),
         );
         setDetails(data);
-      } catch {
+
+        const duration = Date.now() - startTime;
+        telemetryNavigationStop({
+          duration_ms: duration,
+          success: true,
+          has_photos: !!data?.photos?.length,
+          has_opening_hours: !!data?.opening_hours,
+        });
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        telemetryCrash(errorMsg, "", {
+          place_type: osm_value || "unknown",
+          duration_ms: duration,
+        });
       } finally {
         setLoading(false);
       }
@@ -204,7 +235,10 @@ export default function PlaceDetailScreen() {
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={styles.directionsButton}
-              onPress={() =>
+              onPress={() => {
+                telemetryFeatureUsed("place_directions_requested", {
+                  place_type: osm_value || "unknown",
+                });
                 router.push({
                   pathname: "/(main)/routePlanning",
                   params: {
@@ -213,22 +247,32 @@ export default function PlaceDetailScreen() {
                     lat: lat as string,
                     lng: lng as string,
                   },
-                })
-              }
+                });
+              }}
             >
               <DirectionsIcon />
               <Text style={styles.directionsText}>{t("directions")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => setSaveModalVisible(true)}
+              onPress={() => {
+                telemetryFeatureUsed("place_save_requested", {
+                  place_type: osm_value || "unknown",
+                });
+                setSaveModalVisible(true);
+              }}
             >
               <BookmarkIcon />
             </TouchableOpacity>
             {details?.phone && (
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => Linking.openURL(`tel:${details.phone}`)}
+                onPress={() => {
+                  telemetryFeatureUsed("place_phone_called", {
+                    place_type: osm_value || "unknown",
+                  });
+                  Linking.openURL(`tel:${details.phone}`);
+                }}
               >
                 <CallIcon />
               </TouchableOpacity>
@@ -236,7 +280,12 @@ export default function PlaceDetailScreen() {
             {details?.website && (
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => WebBrowser.openBrowserAsync(details.website!)}
+                onPress={() => {
+                  telemetryFeatureUsed("place_website_opened", {
+                    place_type: osm_value || "unknown",
+                  });
+                  WebBrowser.openBrowserAsync(details.website!);
+                }}
               >
                 <WebIcon />
               </TouchableOpacity>
@@ -268,6 +317,9 @@ export default function PlaceDetailScreen() {
                 <TouchableOpacity
                   style={styles.detailItem}
                   onPress={() => {
+                    telemetryFeatureUsed("place_hours_viewed", {
+                      place_type: osm_value || "unknown",
+                    });
                     setHoursModalVisible(true);
                   }}
                 >

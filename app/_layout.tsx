@@ -1,9 +1,9 @@
 import { AppLogoIcon } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
 } from "@react-navigation/native";
 import Constants from "expo-constants";
 import * as NavigationBar from "expo-navigation-bar";
@@ -12,10 +12,10 @@ import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import {
-    StatusBar as NativeStatusBar,
-    Platform,
-    StyleSheet,
-    View,
+  StatusBar as NativeStatusBar,
+  Platform,
+  StyleSheet,
+  View,
 } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,7 +23,12 @@ import { HapticSettingsProvider } from "../contexts/HapticSettingsContext";
 import { PermissionsProvider } from "../contexts/PermissionsContext";
 import { UserProvider, useUser } from "../contexts/UserContext";
 
+import ErrorBoundary from "@/components/ErrorBoundary";
+import UpdateDialog from "@/components/UpdateDialog";
+import { UpdateProvider } from "@/contexts/UpdateContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { initTelemetry } from "@/services/TelemetryInit";
+import { telemetryAppStart } from "@/services/TelemetryService";
 
 export const unstable_settings = {};
 
@@ -45,6 +50,19 @@ function InnerLayout() {
   const [showSplash, setShowSplash] = useState(true);
   const [navigationDone, setNavigationDone] = useState(false);
   const isMainRoute = pathname.startsWith("/(main)");
+  const { privacy } = useUser();
+
+  useEffect(() => {
+    if (!isLoading && hasFinishedOnboarding) {
+      try {
+        initTelemetry(privacy);
+        telemetryAppStart({
+          timestamp: Date.now(),
+          user_anonymous: !hasFinishedOnboarding,
+        });
+      } catch {}
+    }
+  }, [isLoading, hasFinishedOnboarding, privacy]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -163,6 +181,7 @@ function InnerLayout() {
         )}
         <StatusBar hidden style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>
+      <UpdateDialog />
       {showSplash && <SplashScreenOverlay />}
     </>
   );
@@ -170,13 +189,17 @@ function InnerLayout() {
 
 export default function RootLayout() {
   return (
-    <PermissionsProvider>
-      <HapticSettingsProvider>
-        <UserProvider>
-          <InnerLayout />
-        </UserProvider>
-      </HapticSettingsProvider>
-    </PermissionsProvider>
+    <ErrorBoundary>
+      <PermissionsProvider>
+        <HapticSettingsProvider>
+          <UserProvider>
+            <UpdateProvider>
+              <InnerLayout />
+            </UpdateProvider>
+          </UserProvider>
+        </HapticSettingsProvider>
+      </PermissionsProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,31 +1,31 @@
 import {
-  HeartIcon,
-  HomeIcon,
-  SchoolIcon,
-  StarIcon,
-  TrashIcon,
-  WorkIcon,
+    HeartIcon,
+    HomeIcon,
+    SchoolIcon,
+    StarIcon,
+    TrashIcon,
+    WorkIcon,
 } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import {
-  PhotonFeature,
-  SearchEngineService,
+    PhotonFeature,
+    SearchEngineService,
 } from "@/services/SearchEngineService";
 import React from "react";
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 const PlaceIcons = [
@@ -177,11 +177,15 @@ export const SavePlaceModal: React.FC<SavePlaceModalProps> = ({
               <View style={styles.nameRow}>
                 {slot === "other" && (
                   <View style={styles.iconCircle}>
-                    {React.createElement(
-                      PlaceIcons.find((i) => i.id === modalSelectedIcon)
-                        ?.icon || StarIcon,
-                      { color: Colors.dark.primary },
-                    )}
+                    {(() => {
+                      const IconComponent =
+                        PlaceIcons.find((i) => i.id === modalSelectedIcon)
+                          ?.icon || StarIcon;
+                      return React.createElement(
+                        IconComponent as React.ComponentType<any>,
+                        { color: Colors.dark.primary },
+                      );
+                    })()}
                   </View>
                 )}
                 <TextInput

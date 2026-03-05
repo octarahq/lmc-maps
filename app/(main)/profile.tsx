@@ -1,4 +1,5 @@
 import { createTranslator } from "@/i18n";
+import { telemetryNavigationStart } from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -9,6 +10,7 @@ export default function ProfileScreen() {
   const { t } = createTranslator("profile");
 
   useEffect(() => {
+    telemetryNavigationStart("profile_screen");
     showCommingSoonToast();
   }, []);
 

@@ -54,4 +54,23 @@
     "rampRight": "Prenez la bretelle à droite",
     "rampRightRoad": "Prenez la bretelle à droite sur {{road}}"
   }
+
+  ,
+  "arrived": {
+    "tripSummary": "Récapitulatif du trajet",
+    "youHaveArrived": "Vous êtes arrivé",
+    "time": "TEMPS",
+    "distance": "DISTANCE",
+    "avgSpeed": "VIT MOY",
+    "done": "Terminé",
+    "findParking": "Trouver un parking et finir à pied"
+  },
+  "update": {
+    "title": "Mise à jour disponible",
+    "description": "Une nouvelle version est disponible",
+    "downloading": "Téléchargement en cours",
+    "downloadingDesc": "Veuillez patienter pendant le téléchargement et l'installation de la mise à jour...",
+    "download": "Télécharger et installer",
+    "later": "Plus tard"
+  }
 }
