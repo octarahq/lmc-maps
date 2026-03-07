@@ -6,6 +6,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import Constants from "expo-constants";
+import { useKeepAwake } from "expo-keep-awake";
 import * as NavigationBar from "expo-navigation-bar";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -43,6 +44,8 @@ function SplashScreenOverlay() {
 }
 
 function InnerLayout() {
+  useKeepAwake();
+
   const colorScheme = useColorScheme();
   const router = useRouter();
   const pathname = usePathname();
