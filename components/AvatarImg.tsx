@@ -28,7 +28,7 @@ export function AvatarImg({ size = 40, style }: AvatarImgProps) {
           style as StyleProp<ViewStyle>,
         ]}
       >
-        <AvatarIcon width={size * 0.6} height={size * 0.6} />
+        <AvatarIcon width={size * 0.6} height={size * 0.6} color={"#fff"} />
       </View>
     );
   }
@@ -49,9 +49,6 @@ export function AvatarImg({ size = 40, style }: AvatarImgProps) {
       contentFit="cover"
       transition={200}
       onError={() => {
-        console.log(
-          "[AvatarImg] Failed to load avatar image, falling back to icon",
-        );
         setHasError(true);
       }}
     />
