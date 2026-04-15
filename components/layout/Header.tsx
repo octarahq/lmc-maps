@@ -6,7 +6,7 @@ export default function Header({ title }: { title: string }) {
   return (
     <View
       style={{
-        paddingTop: 3,
+        paddingTop: 7,
         backgroundColor: "#101922",
       }}
     >
