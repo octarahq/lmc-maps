@@ -16,7 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { SearchResult } from "./search";
+import { SearchResult } from "./(search)/search";
 
 export default function TripHistoryScreen() {
   const { t } = createTranslator("trip_history");

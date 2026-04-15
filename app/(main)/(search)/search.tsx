@@ -53,21 +53,21 @@ import {
 import BackIcon from "@/assets/icons/BackIcon";
 import BookmarkIcon from "@/assets/icons/BookmarkIcon";
 import CompassIcon from "@/assets/icons/CompassIcon";
+import activityImg from "@/assets/images/search/explore/activity.png";
+import cultureImg from "@/assets/images/search/explore/culture.png";
+import foodImg from "@/assets/images/search/explore/food.png";
+import natureImg from "@/assets/images/search/explore/nature.png";
+import nightlifeImg from "@/assets/images/search/explore/nightlife.png";
+import shoppingImg from "@/assets/images/search/explore/shopping.png";
+import socialImg from "@/assets/images/search/explore/social.png";
+import topDiningImg from "@/assets/images/search/explore/topDining.png";
 import { AvatarImg } from "@/components/AvatarImg";
 import MapSnapshot from "@/components/MapSnapshot";
-import OverPassAmenityList from "../../assets/config/poiList";
-import activityImg from "../../assets/images/search/explore/activity.png";
-import cultureImg from "../../assets/images/search/explore/culture.png";
-import foodImg from "../../assets/images/search/explore/food.png";
-import natureImg from "../../assets/images/search/explore/nature.png";
-import nightlifeImg from "../../assets/images/search/explore/nightlife.png";
-import shoppingImg from "../../assets/images/search/explore/shopping.png";
-import socialImg from "../../assets/images/search/explore/social.png";
-import topDiningImg from "../../assets/images/search/explore/topDining.png";
+import OverPassAmenityList from "../../../assets/config/poiList";
 import {
   PhotonFeature,
   SearchEngineService,
-} from "../../services/SearchEngineService";
+} from "../../../services/SearchEngineService";
 
 const PlaceIcons = [
   { id: "home", icon: HomeIcon },
