@@ -79,7 +79,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_gas");
-                  router.push("/(main)/(search)/poisearch?type=gas");
+                  router.push("/(main)/poiresult?type=gas");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -93,7 +93,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_food");
-                  router.push("/(main)/(search)/poisearch?type=food");
+                  router.push("/(main)/poiresult?type=food");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -107,7 +107,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_parking");
-                  router.push("/(main)/(search)/poisearch?type=parking");
+                  router.push("/(main)/poiresult?type=parking");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -120,7 +120,7 @@ export default function MainScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() => {
-                  router.push("/(main)/(search)/poisearch");
+                  router.push("/(main)/(search)/search?mode=explore");
                 }}
               >
                 <View style={styles.itemBox}>

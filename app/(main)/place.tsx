@@ -128,7 +128,7 @@ export default function PlaceDetailScreen() {
   }, [osm_id, osm_type]);
 
   const placeTitle = (details?.title || name || t("unknownPlace")) as string;
-  const placeAddress = (address || details?.id || "") as string;
+  const placeAddress = (address || "") as string;
 
   const [ohUtils, setOhUtils] = useState<any>(null);
   const [ohStatus, setOhStatus] = useState<any>(null);
@@ -293,24 +293,28 @@ export default function PlaceDetailScreen() {
           </View>
 
           <View style={styles.detailsList}>
-            <View style={styles.detailItem}>
-              <View style={styles.detailIconContainer}>
-                <AddressIcon color={Colors.dark.primary} />
-              </View>
-              <View style={styles.detailTextContainer}>
-                <Text style={styles.detailLabel}>{t("address")}</Text>
-                <Text style={styles.detailValue}>{placeAddress}</Text>
-              </View>
-            </View>
+            {address && (
+              <View>
+                <View style={styles.detailItem}>
+                  <View style={styles.detailIconContainer}>
+                    <AddressIcon color={Colors.dark.primary} />
+                  </View>
+                  <View style={styles.detailTextContainer}>
+                    <Text style={styles.detailLabel}>{t("address")}</Text>
+                    <Text style={styles.detailValue}>{placeAddress}</Text>
+                  </View>
+                </View>
 
-            {lat && lng ? (
-              <View style={styles.placeMapPreviewFull}>
-                <MapSnapshot
-                  lat={parseFloat(lat as string)}
-                  lng={parseFloat(lng as string)}
-                />
+                {lat && lng ? (
+                  <View style={styles.placeMapPreviewFull}>
+                    <MapSnapshot
+                      lat={parseFloat(lat as string)}
+                      lng={parseFloat(lng as string)}
+                    />
+                  </View>
+                ) : null}
               </View>
-            ) : null}
+            )}
 
             {details?.opening_hours && (
               <>
