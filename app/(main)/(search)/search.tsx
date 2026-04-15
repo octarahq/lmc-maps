@@ -12,7 +12,11 @@ import {
 } from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { clearRecentTrips, getRecentTrips } from "@/utils/recentTrips";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  RelativePathString,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import React from "react";
 import {
   ImageBackground,
@@ -446,16 +450,38 @@ export default function SearchScreen() {
                 style={styles.chips}
               >
                 {[
-                  { icon: <GasIcon />, label: t("chip_gas") },
-                  { icon: <ParkingIcon />, label: t("chip_parking") },
-                  { icon: <CoffeeIcon />, label: t("chip_coffee") },
-                  { icon: <EvIcon />, label: t("chip_ev") },
-                  { icon: <FoodIcon />, label: t("chip_food") },
+                  {
+                    icon: <GasIcon />,
+                    label: t("chip_gas"),
+                    href: "/(main)/(search)/poisearch?type=gas",
+                  },
+                  {
+                    icon: <ParkingIcon />,
+                    label: t("chip_parking"),
+                    href: "/(main)/(search)/poisearch?type=parking",
+                  },
+                  {
+                    icon: <CoffeeIcon />,
+                    label: t("chip_coffee"),
+                    href: "/(main)/(search)/poisearch?type=coffee",
+                  },
+                  {
+                    icon: <EvIcon />,
+                    label: t("chip_ev"),
+                    href: "/(main)/(search)/poisearch?type=ev",
+                  },
+                  {
+                    icon: <FoodIcon />,
+                    label: t("chip_food"),
+                    href: "/(main)/(search)/poisearch?type=food",
+                  },
                 ].map((c) => (
                   <TouchableOpacity
                     key={c.label}
                     style={styles.chip}
-                    onPress={() => showCommingSoonToast()}
+                    onPress={() =>
+                      router.push({ pathname: c.href as RelativePathString })
+                    }
                   >
                     <View style={styles.chipIcon}>{c.icon}</View>
                     <Text style={styles.chipLabel}>{c.label}</Text>

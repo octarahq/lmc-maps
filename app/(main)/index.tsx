@@ -7,9 +7,9 @@ import {
   telemetryFeatureUsed,
   telemetryNavigationStart,
 } from "@/services/TelemetryService";
-import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
 import React from "react";
 import {
   StatusBar,
@@ -78,7 +78,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_gas");
-                  showCommingSoonToast();
+                  router.push("/(main)/(search)/poisearch?type=gas");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -92,7 +92,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_food");
-                  showCommingSoonToast();
+                  router.push("/(main)/(search)/poisearch?type=food");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -106,7 +106,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_coffee");
-                  showCommingSoonToast();
+                  router.push("/(main)/(search)/poisearch?type=coffee");
                 }}
               >
                 <View style={styles.itemBox}>
@@ -120,7 +120,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_parking");
-                  showCommingSoonToast();
+                  router.push("/(main)/(search)/poisearch?type=parking");
                 }}
               >
                 <View style={styles.itemBox}>
