@@ -6,7 +6,7 @@ export default function BookmarkIcon({
   color = "currentColor",
   active,
   ...props
-}: SvgProps & { color?: string; active: boolean }) {
+}: SvgProps & { color?: string; active?: boolean }) {
   return (
     <Svg
       width={24}

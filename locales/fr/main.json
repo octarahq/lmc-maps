@@ -15,7 +15,7 @@
   "items": {
     "gas": "Station",
     "food": "Restauration",
-    "coffee": "Café",
+    "more": "Plus",
     "parking": "Parking"
   },
   "layers": {

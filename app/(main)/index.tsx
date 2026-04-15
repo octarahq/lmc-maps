@@ -1,4 +1,5 @@
-import { CoffeeIcon, FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
+import { FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
+import MoreHorIcon from "@/assets/icons/MoreHorIcon";
 import { Sidebar } from "@/components/layout/Sidebar";
 import MapProvider from "@/components/map";
 import { usePosition } from "@/contexts/PositionContext";
@@ -105,20 +106,6 @@ export default function MainScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() => {
-                  telemetryFeatureUsed("home_explore_coffee");
-                  router.push("/(main)/(search)/poisearch?type=coffee");
-                }}
-              >
-                <View style={styles.itemBox}>
-                  <CoffeeIcon />
-                </View>
-
-                <Text style={styles.itemLabel}>{t("items.coffee")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => {
                   telemetryFeatureUsed("home_explore_parking");
                   router.push("/(main)/(search)/poisearch?type=parking");
                 }}
@@ -128,6 +115,19 @@ export default function MainScreen() {
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.parking")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => {
+                  router.push("/(main)/(search)/poisearch");
+                }}
+              >
+                <View style={styles.itemBox}>
+                  <MoreHorIcon />
+                </View>
+
+                <Text style={styles.itemLabel}>{t("items.more")}</Text>
               </TouchableOpacity>
             </View>
           </BottomSheetView>
