@@ -1,26 +1,18 @@
 import { HistoryIcon } from "@/assets/icons";
-import { useAuth } from "@/hooks/useAuth";
+import Header from "@/components/layout/Header";
 import { createTranslator } from "@/i18n";
 import {
   telemetryFeatureUsed,
   telemetryNavigationStart,
 } from "@/services/TelemetryService";
 import { getRecentTrips } from "@/utils/recentTrips";
-import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SearchResult } from "./(search)/search";
 
 export default function TripHistoryScreen() {
   const { t } = createTranslator("trip_history");
-  const { isLoading } = useAuth();
   const [recentTrips, setRecentTrips] = React.useState<any[]>([]);
 
   useEffect(() => {
@@ -39,27 +31,9 @@ export default function TripHistoryScreen() {
     telemetryNavigationStart("trip_history_screen");
   }, []);
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0d7ff2" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => {
-            router.back();
-          }}
-          style={{ padding: 8 }}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="#0d7ff2" />
-        </Pressable>
-        <Text style={styles.title}>{t("title")}</Text>
-      </View>
+      <Header title={t("title")} />
       {recentTrips.length === 0 ? (
         <View style={{ padding: 12 }}>
           <Text style={{ color: "#90adcb" }}>{t("emptyState.title")}</Text>
