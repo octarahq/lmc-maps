@@ -1,4 +1,5 @@
 import {
+  AvatarIcon,
   BookmarkIcon,
   CloseIcon,
   HistoryIcon,
@@ -27,7 +28,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isVisible, onClose }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
   const router = useRouter();
 
   if (!isVisible) return null;
@@ -40,7 +41,11 @@ export function Sidebar({ isVisible, onClose }: SidebarProps) {
   const handleLogout = async () => {
     await logout();
     onClose();
-    router.replace("/(onboarding)/step1");
+  };
+
+  const handleLogin = async () => {
+    await login();
+    onClose();
   };
 
   const displayName = user?.name || user?.email?.split("@")[0] || "Guest";
@@ -55,7 +60,6 @@ export function Sidebar({ isVisible, onClose }: SidebarProps) {
       <View style={styles.container}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
-        {/* Sidebar Content */}
         <Animated.View
           entering={SlideInLeft.duration(300)}
           exiting={SlideOutLeft.duration(300)}
@@ -76,24 +80,24 @@ export function Sidebar({ isVisible, onClose }: SidebarProps) {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollContent}
             >
-              {/* Profile Section */}
               <View style={styles.profileSection}>
-                <View style={styles.avatarBorder}>
-                  <AvatarImg size={64} />
-                </View>
+                <AvatarImg size={64} />
                 <Text style={styles.userName}>{displayName}</Text>
                 <Text style={styles.userEmail}>
                   {user?.email || "Connectez-vous pour plus de fonctionnalités"}
                 </Text>
               </View>
 
-              {/* Navigation List */}
               <View style={styles.navContainer}>
                 <TouchableOpacity
                   style={[styles.navItem]}
                   onPress={() => handleNavigation("/(main)/settings")}
                 >
-                  <SettingsIcon width={24} height={24} color="#0d7ff2" />
+                  <SettingsIcon
+                    width={24}
+                    height={24}
+                    color="rgba(255,255,255,0.6)"
+                  />
                   <Text style={[styles.navText]}>Paramètres</Text>
                 </TouchableOpacity>
 
@@ -116,7 +120,7 @@ export function Sidebar({ isVisible, onClose }: SidebarProps) {
                   style={styles.navItem}
                   onPress={() => {
                     onClose();
-                    router.push("/(main)/search?mode=saved");
+                    router.push("/(main)/(search)/search?tab=saved");
                   }}
                 >
                   <BookmarkIcon
@@ -132,10 +136,21 @@ export function Sidebar({ isVisible, onClose }: SidebarProps) {
             <View style={styles.footer}>
               <TouchableOpacity
                 style={styles.logoutButton}
-                onPress={handleLogout}
+                onPress={user?.email ? handleLogout : handleLogin}
               >
-                <LogoutIcon width={24} height={24} color="#ff6b6b" />
-                <Text style={styles.logoutText}>Déconnexion</Text>
+                {user?.email ? (
+                  <LogoutIcon width={24} height={24} color="#ff6b6b" />
+                ) : (
+                  <AvatarIcon width={24} height={24} color="#0d7ff2" />
+                )}
+                <Text
+                  style={{
+                    ...styles.logoutText,
+                    color: user?.email ? "#ff6b6b" : "#0d7ff2",
+                  }}
+                >
+                  {user?.email ? "Déconnexion" : "Se connecter"}
+                </Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -177,19 +192,6 @@ const styles = StyleSheet.create({
   profileSection: {
     paddingHorizontal: 24,
     marginBottom: 40,
-  },
-  avatarBorder: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#0d7ff2",
-    overflow: "hidden",
-    marginBottom: 16,
-    shadowColor: "#0d7ff2",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
   userName: {
     color: "#fff",
@@ -252,7 +254,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   logoutText: {
-    color: "#ff6b6b",
     fontSize: 14,
     fontWeight: "bold",
   },
