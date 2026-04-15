@@ -22,7 +22,6 @@ export default function TripHistoryScreen() {
   const { t } = createTranslator("trip_history");
   const { isLoading } = useAuth();
   const [recentTrips, setRecentTrips] = React.useState<any[]>([]);
-  const [visibleRecentCount, setVisibleRecentCount] = React.useState(5);
 
   useEffect(() => {
     let mounted = true;
@@ -69,7 +68,7 @@ export default function TripHistoryScreen() {
           </Text>
         </View>
       ) : (
-        recentTrips.slice(0, visibleRecentCount).map((r) => (
+        recentTrips.map((r) => (
           <SearchResult
             key={`${r.lat}_${r.lng}_${r.ts}`}
             icon={<HistoryIcon />}
