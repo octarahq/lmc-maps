@@ -1,6 +1,6 @@
 {
   "step1": {
-    "welcome_title": "Bienvenue sur LMC Maps",
+    "welcome_title": "Bienvenue sur Octara Maps",
     "welcome_body": "Expérimentez une navigation minimaliste avec une efficacité ultra-moderne."
   },
   "step2": {
@@ -23,7 +23,7 @@
   },
   "step4": {
     "heading": "Permissions",
-    "description": "Pour offrir la meilleure expérience de navigation, LMC Maps nécessite les accès suivants :",
+    "description": "Pour offrir la meilleure expérience de navigation, Octara Maps nécessite les accès suivants :",
     "warning_missing_title": "Permission requise",
     "warning_missing": "Impossible de continuer sans permission de localisation.",
     "warning_partial_title": "Fonctionnalités limitées",

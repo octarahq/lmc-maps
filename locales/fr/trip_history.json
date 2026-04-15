@@ -1,0 +1,7 @@
+{
+    "title": "Historique des trajets",
+    "emptyState": {
+        "title": "Aucun trajet enregistré",
+        "description": "Vous n'avez pas encore réalisé de trajets."
+    }
+}

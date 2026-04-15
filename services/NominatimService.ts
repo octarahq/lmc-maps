@@ -45,8 +45,8 @@ export interface NominatimReverseResult {
 export class NominatimService {
   private static readonly BASE_URL = "https://nominatim.openstreetmap.org";
   private static readonly DEFAULT_HEADERS = {
-    "User-Agent": "LMC-Maps/3.0.0",
-    Referer: "https://lmcgroup.xyz/",
+    "User-Agent": "Octara-Maps/3.0.0",
+    Referer: "https://maps.octara.xyz/",
   };
 
   static async search(

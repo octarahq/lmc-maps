@@ -1107,7 +1107,7 @@ export function useRouteService(): RouteService {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            "User-Agent": "LMC-Maps-App/1.0",
+            "User-Agent": "Octara-Maps/1.0",
           },
           body: JSON.stringify(body),
           signal: controller.signal,

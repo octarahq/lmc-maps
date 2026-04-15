@@ -1,14 +1,14 @@
 import React from "react";
 import Svg, { Path, SvgProps } from "react-native-svg";
 
-export default function CloseIcon({
-  color = "#fff",
+export default function MenuIcon({
+  color = "currentColor",
   ...props
 }: SvgProps & { color?: string }) {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
       <Path
-        d="M18 6L6 18M6 6L18 18"
+        d="M3 12H21M3 6H21M3 18H21"
         stroke={color}
         strokeWidth="2"
         strokeLinecap="round"

@@ -1,19 +1,21 @@
 {
   "expo": {
-    "name": "LMC Maps",
-    "slug": "lmc-maps-v3",
+    "name": "Octara Maps",
+    "slug": "octara-maps",
     "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lmcmapsv3",
+    "scheme": "octaramaps",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.lmcmapsv3"
+      "bundleIdentifier": "com.octarahq.octaramaps"
     },
     "android": {
-      "permissions": ["REQUEST_INSTALL_PACKAGES"],
+      "permissions": [
+        "REQUEST_INSTALL_PACKAGES"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -22,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.lmcmapsv3",
+      "package": "com.octarahq.octaramaps",
       "softwareKeyboardLayoutMode": "resize",
       "intentFilters": [
         {
@@ -31,11 +33,14 @@
           "data": [
             {
               "scheme": "https",
-              "host": "maps.lmcgroup.xyz",
+              "host": "maps.octara.xyz",
               "pathPrefix": "/place"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -68,6 +73,6 @@
         "projectId": "7bcdb261-e2d7-453b-8917-e6746567ef9c"
       }
     },
-    "owner": "lmc-group"
+    "owner": "octarahq"
   }
 }

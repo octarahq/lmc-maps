@@ -1,4 +1,5 @@
 import { CoffeeIcon, FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
+import { Sidebar } from "@/components/layout/Sidebar";
 import MapProvider from "@/components/map";
 import { usePosition } from "@/contexts/PositionContext";
 import { createTranslator } from "@/i18n";
@@ -29,6 +30,7 @@ export default function MainScreen() {
     [screenHeight],
   );
   const [blockMap, setBlockMap] = React.useState(false);
+  const [isSidebarVisible, setSidebarVisible] = React.useState(false);
   const pos = usePosition();
 
   React.useEffect(() => {
@@ -44,7 +46,14 @@ export default function MainScreen() {
           backgroundColor="transparent"
           barStyle="light-content"
         />
-        <MapOverlay blockMap={blockMap} />
+        <MapOverlay
+          blockMap={blockMap}
+          onAvatarPress={() => setSidebarVisible(true)}
+        />
+        <Sidebar
+          isVisible={isSidebarVisible}
+          onClose={() => setSidebarVisible(false)}
+        />
         <BottomSheet
           ref={sheetRef}
           snapPoints={snapPoints}

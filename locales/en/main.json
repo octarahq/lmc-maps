@@ -1,5 +1,5 @@
 {
-  "appTitle": "LMC Maps",
+  "appTitle": "Octara Maps",
   "searchPlaceholder": "Where to?",
   "chips": {
     "home": "Home",
@@ -17,8 +17,7 @@
     "food": "Food",
     "coffee": "Coffee",
     "parking": "Parking"
-  }
-  ,
+  },
   "layers": {
     "title": "Map Layers",
     "mapType": "Map Type",

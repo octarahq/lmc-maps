@@ -1,12 +1,12 @@
 import { SavePlaceModal } from "@/app/(main)/_components/SavePlaceModal";
 import {
-    AddressIcon,
-    BackIcon,
-    BookmarkIcon,
-    CallIcon,
-    DirectionsIcon,
-    ShareIcon,
-    WebIcon,
+  AddressIcon,
+  BackIcon,
+  BookmarkIcon,
+  CallIcon,
+  DirectionsIcon,
+  ShareIcon,
+  WebIcon,
 } from "@/assets/icons";
 import ScheduleIcon from "@/assets/icons/ScheduleIcon";
 import MapSnapshot from "@/components/MapSnapshot";
@@ -14,10 +14,10 @@ import { Colors } from "@/constants/theme";
 import { createTranslator } from "@/i18n";
 import FreePlaceDetailsService from "@/services/PlaceDetailService";
 import {
-    telemetryCrash,
-    telemetryFeatureUsed,
-    telemetryNavigationStart,
-    telemetryNavigationStop,
+  telemetryCrash,
+  telemetryFeatureUsed,
+  telemetryNavigationStart,
+  telemetryNavigationStop,
 } from "@/services/TelemetryService";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -25,18 +25,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    ImageBackground,
-    Linking,
-    Platform,
-    ScrollView,
-    Share,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    useWindowDimensions,
+  ActivityIndicator,
+  ImageBackground,
+  Linking,
+  Platform,
+  ScrollView,
+  Share,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -63,7 +63,7 @@ export default function PlaceDetailScreen() {
   const [hoursModalVisible, setHoursModalVisible] = useState(false);
 
   const WEB_BASE =
-    process.env.EXPO_PUBLIC_WEB_BASE_URL ?? "https://maps.lmcgroup.xyz";
+    process.env.EXPO_PUBLIC_WEB_BASE_URL ?? "https://maps.octara.xyz";
 
   const handleShare = async () => {
     const params = new URLSearchParams();

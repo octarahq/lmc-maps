@@ -1,36 +1,40 @@
-const fr_onboarding = require("./fr/onboarding.json");
-const en_onboarding = require("./en/onboarding.json");
-const fr_main = require("./fr/main.json");
-const en_main = require("./en/main.json");
-const fr_search = require("./fr/search.json");
-const en_search = require("./en/search.json");
-const fr_profile = require("./fr/profile.json");
-const en_profile = require("./en/profile.json");
-const fr_place = require("./fr/place.json");
-const en_place = require("./en/place.json");
-const fr_routePlanning = require("./fr/routePlanning.json");
-const en_routePlanning = require("./en/routePlanning.json");
-const fr_navigate = require("./fr/navigate.json");
-const en_navigate = require("./en/navigate.json");
+const enMain = require("./en/main.json");
+const enNavigate = require("./en/navigate.json");
+const enOnboarding = require("./en/onboarding.json");
+const enPlace = require("./en/place.json");
+const enRoutePlanning = require("./en/routePlanning.json");
+const enSearch = require("./en/search.json");
+const enSettings = require("./en/settings.json");
+const enTripHistory = require("./en/trip_history.json");
+const frMain = require("./fr/main.json");
+const frNavigate = require("./fr/navigate.json");
+const frOnboarding = require("./fr/onboarding.json");
+const frPlace = require("./fr/place.json");
+const frRoutePlanning = require("./fr/routePlanning.json");
+const frSearch = require("./fr/search.json");
+const frSettings = require("./fr/settings.json");
+const frTripHistory = require("./fr/trip_history.json");
 
 const translations = {
   fr: {
-    onboarding: fr_onboarding,
-    main: fr_main,
-    routePlanning: fr_routePlanning,
-    navigate: fr_navigate,
-    search: fr_search,
-    profile: fr_profile,
-    place: fr_place,
+    onboarding: frOnboarding,
+    main: frMain,
+    routePlanning: frRoutePlanning,
+    navigate: frNavigate,
+    search: frSearch,
+    settings: frSettings,
+    place: frPlace,
+    trip_history: frTripHistory,
   },
   en: {
-    onboarding: en_onboarding,
-    main: en_main,
-    routePlanning: en_routePlanning,
-    navigate: en_navigate,
-    search: en_search,
-    profile: en_profile,
-    place: en_place,
+    onboarding: enOnboarding,
+    main: enMain,
+    routePlanning: enRoutePlanning,
+    navigate: enNavigate,
+    search: enSearch,
+    settings: enSettings,
+    place: enPlace,
+    trip_history: enTripHistory,
   },
 };
 

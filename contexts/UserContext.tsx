@@ -10,6 +10,10 @@ export type UserProfile = {
   privacy: PrivacyLevel;
   language: string;
   hasFinishedOnboarding: boolean;
+  settings: {
+    favTransportMode: "car" | "transit" | "bike" | "walk";
+    voice: "alert" | "all" | "off";
+  };
 };
 
 export type SavedPlace = {
@@ -37,6 +41,7 @@ type ContextType = UserProfile & {
   setSavedPlace: (key: "home" | "work", place: SavedPlace | null) => void;
   addOtherPlace: (place: SavedPlace) => void;
   removeOtherPlace: (index: number) => void;
+  setSettings: (p: UserProfile["settings"]) => void;
 };
 
 const STORAGE_KEY = "userProfile";
@@ -53,8 +58,12 @@ function loadProfile(): Promise<UserProfile & { saved?: SavedPlaces }> {
     return {
       name: "",
       privacy: "total",
-      language: "",
+      language: "fr",
       hasFinishedOnboarding: false,
+      settings: {
+        favTransportMode: "car",
+        voice: "alert",
+      },
     };
   });
 }
@@ -69,6 +78,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     privacy: "total",
     language: Localization.getLocales()[0]?.languageCode || "en",
     hasFinishedOnboarding: false,
+    settings: {
+      favTransportMode: "car",
+      voice: "alert",
+    },
   });
   const [saved, setSaved] = useState<SavedPlaces>({
     home: null,
@@ -89,6 +102,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         language:
           p.language || Localization.getLocales()[0]?.languageCode || "en",
         hasFinishedOnboarding: !!p.hasFinishedOnboarding,
+        settings: {
+          favTransportMode: p.settings?.favTransportMode || "car",
+          voice: p.settings?.voice || "alert",
+        },
       });
       if ((p as any).saved) {
         setSaved((p as any).saved as SavedPlaces);
@@ -102,6 +119,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setI18nLanguage(profile.language);
     }
   }, [profile.language]);
+
+  const setSettings = React.useCallback((settings: UserProfile["settings"]) => {
+    setProfile((p) => {
+      const updated = { ...p, settings };
+      saveProfile(updated);
+      return updated;
+    });
+  }, []);
 
   const setName = React.useCallback((name: string) => {
     setProfile((p) => {
@@ -194,6 +219,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setPrivacy,
         setLanguage,
         setHasFinishedOnboarding,
+        setSettings,
         isLoading,
       }}
     >

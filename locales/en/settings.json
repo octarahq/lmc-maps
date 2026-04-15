@@ -1,0 +1,28 @@
+{
+  "title": "Settings",
+  "transportations_mode": {
+    "car": "Car",
+    "bike": "Bike",
+    "walk": "Walk",
+    "transit": "Public transport"
+  },
+  "voice_guidance": {
+    "none": "None",
+    "alert": "Alerts only",
+    "all": "Full voice guidance"
+  },
+  "sections": [
+    {
+      "title": "Navigation",
+      "settings": [
+        {
+          "title": "Default transport mode"
+        },
+        {
+          "title": "Voice guidance",
+          "description": "Use voice dictation to guide you"
+        }
+      ]
+    }
+  ]
+}

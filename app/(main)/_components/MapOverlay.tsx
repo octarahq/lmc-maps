@@ -1,11 +1,11 @@
 import {
-    AppLogoIcon,
-    AvatarIcon,
-    HistoryIcon,
-    HomeIcon,
-    MoreIcon,
-    WorkIcon,
+  AppLogoIcon,
+  HistoryIcon,
+  HomeIcon,
+  MoreIcon,
+  WorkIcon,
 } from "@/assets/icons";
+import { AvatarImg } from "@/components/AvatarImg";
 import { useHapticSettings } from "@/contexts/HapticSettingsContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
@@ -13,19 +13,23 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 interface MapOverlayProps {
   blockMap: boolean;
+  onAvatarPress: () => void;
 }
 
-export default function MapOverlay({ blockMap }: MapOverlayProps) {
+export default function MapOverlay({
+  blockMap,
+  onAvatarPress,
+}: MapOverlayProps) {
   const { t } = createTranslator("main");
   const { vibration } = useHapticSettings();
   const { saved } = useUser();
@@ -80,8 +84,8 @@ export default function MapOverlay({ blockMap }: MapOverlayProps) {
 
   const handleAvatarPress = React.useCallback(() => {
     triggerHaptic();
-    router.push("/(main)/profile");
-  }, [triggerHaptic, router]);
+    onAvatarPress();
+  }, [triggerHaptic, onAvatarPress]);
 
   const chips = React.useMemo(() => {
     const list: {
@@ -147,10 +151,10 @@ export default function MapOverlay({ blockMap }: MapOverlayProps) {
               <View style={styles.logo}>
                 <AppLogoIcon width={20} height={20} fill="#fff" />
               </View>
-              <Text style={styles.title}>LMC Maps</Text>
+              <Text style={styles.title}>Octara Maps</Text>
             </View>
             <TouchableOpacity style={styles.avatar} onPress={handleAvatarPress}>
-              <AvatarIcon />
+              <AvatarImg size={40} />
             </TouchableOpacity>
           </View>
 

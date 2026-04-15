@@ -1,5 +1,5 @@
 {
-  "appTitle": "LMC Cartes",
+  "appTitle": "Octara Maps",
   "searchPlaceholder": "Où aller ?",
   "chips": {
     "home": "Domicile",
@@ -17,8 +17,7 @@
     "food": "Restauration",
     "coffee": "Café",
     "parking": "Parking"
-  }
-  ,
+  },
   "layers": {
     "title": "Couches de la carte",
     "mapType": "Type de carte",

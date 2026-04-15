@@ -1,0 +1,7 @@
+{
+    "title": "Trip History",
+    "emptyState": {
+        "title": "No trips recorded",
+        "description": "You haven't completed any trips yet."
+    }
+}

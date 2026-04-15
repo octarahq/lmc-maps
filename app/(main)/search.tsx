@@ -31,7 +31,6 @@ import {
   AddressIcon,
   AmenityIcon,
   ArrowRightIcon,
-  AvatarIcon,
   BatimentIcon,
   BusStopIcon,
   CoffeeIcon,
@@ -54,6 +53,7 @@ import {
 import BackIcon from "@/assets/icons/BackIcon";
 import BookmarkIcon from "@/assets/icons/BookmarkIcon";
 import CompassIcon from "@/assets/icons/CompassIcon";
+import { AvatarImg } from "@/components/AvatarImg";
 import MapSnapshot from "@/components/MapSnapshot";
 import OverPassAmenityList from "../../assets/config/poiList";
 import activityImg from "../../assets/images/search/explore/activity.png";
@@ -76,26 +76,34 @@ const PlaceIcons = [
   { id: "star", icon: StarIcon },
   { id: "school", icon: SchoolIcon },
 ];
-const SearchResult: React.FC<{
+export function SearchResult({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  onArrowPress,
+}: {
   icon?: React.ReactNode;
   title: string;
   subtitle?: string;
   onPress?: () => void;
   onArrowPress?: () => void;
-}> = ({ icon, title, subtitle, onPress, onArrowPress }) => (
-  <TouchableOpacity style={styles.listItem} onPress={onPress}>
-    <View style={styles.itemIcon}>{icon}</View>
-    <View style={styles.itemBody}>
-      <Text style={styles.itemTitle}>{title}</Text>
-      {subtitle ? <Text style={styles.itemSub}>{subtitle}</Text> : null}
-    </View>
-    {onArrowPress ? (
-      <TouchableOpacity onPress={onArrowPress} hitSlop={8}>
-        <ArrowRightIcon />
-      </TouchableOpacity>
-    ) : null}
-  </TouchableOpacity>
-);
+}) {
+  return (
+    <TouchableOpacity style={styles.listItem} onPress={onPress}>
+      <View style={styles.itemIcon}>{icon}</View>
+      <View style={styles.itemBody}>
+        <Text style={styles.itemTitle}>{title}</Text>
+        {subtitle ? <Text style={styles.itemSub}>{subtitle}</Text> : null}
+      </View>
+      {onArrowPress ? (
+        <TouchableOpacity onPress={onArrowPress} hitSlop={8}>
+          <ArrowRightIcon />
+        </TouchableOpacity>
+      ) : null}
+    </TouchableOpacity>
+  );
+}
 
 export default function SearchScreen() {
   const { t } = createTranslator("search");
@@ -251,9 +259,9 @@ export default function SearchScreen() {
           <Text style={styles.title}>{t("title")}</Text>
           <TouchableOpacity
             style={styles.avatar}
-            onPress={() => router.push("/(main)/profile")}
+            onPress={() => router.push("/(main)/settings")}
           >
-            <AvatarIcon />
+            <AvatarImg size={40} />
           </TouchableOpacity>
         </View>
 

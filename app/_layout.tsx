@@ -7,6 +7,7 @@ import {
 } from "@react-navigation/native";
 import Constants from "expo-constants";
 import { useKeepAwake } from "expo-keep-awake";
+import * as Linking from "expo-linking";
 import * as NavigationBar from "expo-navigation-bar";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -97,6 +98,7 @@ function InnerLayout() {
       "/step3",
       "/step4",
       "/step5",
+      "/redirect",
     ].some((step) => pathname.includes(step));
 
     if (!isOnboardingStep) {
@@ -145,6 +147,13 @@ function InnerLayout() {
     }
   }, [colorScheme, pathname]);
 
+  useEffect(() => {
+    console.log(
+      "[RootLayout] Linking.createURL('redirect') =",
+      Linking.createURL("redirect"),
+    );
+  }, []);
+
   return (
     <>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -190,15 +199,19 @@ function InnerLayout() {
   );
 }
 
+import { AuthProvider } from "../contexts/AuthContext";
+
 export default function RootLayout() {
   return (
     <ErrorBoundary>
       <PermissionsProvider>
         <HapticSettingsProvider>
           <UserProvider>
-            <UpdateProvider>
-              <InnerLayout />
-            </UpdateProvider>
+            <AuthProvider>
+              <UpdateProvider>
+                <InnerLayout />
+              </UpdateProvider>
+            </AuthProvider>
           </UserProvider>
         </HapticSettingsProvider>
       </PermissionsProvider>
