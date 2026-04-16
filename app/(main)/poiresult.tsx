@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -47,19 +48,16 @@ export default function POISearchScreen() {
         })
         .catch(() => setResults([]));
     }
-  }, [loading, position]);
+    // On écoute les coordonnées spécifiques, pas l'objet 'position' entier
+    // ni 'loading' pour éviter les appels API en boucle infinie.
+  }, [position?.latitude, position?.longitude]);
 
-  if (loading || results === null) {
+  // Écran de chargement uniquement au TOUT PREMIER lancement
+  if (results === null) {
     return (
       <View style={styles.container}>
         <Header title={t("title")} />
-        <View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
+        <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#e3e3e3" />
           <Text style={styles.centerText}>{t("loading")}</Text>
         </View>
@@ -70,20 +68,17 @@ export default function POISearchScreen() {
   return (
     <View style={styles.container}>
       <Header title={t("title")} />
-      <View
-        style={{
-          padding: 16,
-          marginEnd: 12,
-        }}
-      >
-        <Text style={{ color: "#e3e3e3", fontSize: 18, fontWeight: "bold" }}>
-          Nearby Classic
-        </Text>
+
+      {/* On utilise ScrollView pour permettre à la page de défiler */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.headerRow}>
+          <Text style={styles.sectionTitle}>Nearby Classic</Text>
+          {/* Petit indicateur visuel si le GPS cherche à s'affiner en arrière-plan */}
+          {loading && <ActivityIndicator size="small" color="#e3e3e3" />}
+        </View>
 
         {results.length === 0 && (
-          <Text style={{ color: "#e3e3e3", fontSize: 14, marginTop: 8 }}>
-            {t("no_results")}
-          </Text>
+          <Text style={styles.noResultsText}>{t("no_results")}</Text>
         )}
 
         {results.map((result) => {
@@ -125,6 +120,7 @@ export default function POISearchScreen() {
           ) : (
             <AddressIcon />
           );
+
           return (
             <TouchableOpacity
               key={result.id}
@@ -143,44 +139,14 @@ export default function POISearchScreen() {
                 })
               }
             >
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  marginTop: 16,
-                  padding: 16,
-                  borderRadius: 24,
-                  borderWidth: 1,
-                  borderColor: "#2e3a4c",
-                  backgroundColor: "#1a2533",
-                }}
-              >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: "#2e3a4c",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginRight: 16,
-                  }}
-                >
-                  {PlaceIcon}
-                </View>
-                <View style={{ flex: 1, justifyContent: "center" }}>
-                  <Text
-                    style={{
-                      color: "#e3e3e3",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                    }}
-                  >
+              <View style={styles.card}>
+                <View style={styles.iconWrapper}>{PlaceIcon}</View>
+                {/* On limite le texte à sa colonne pour éviter qu'il pousse l'écran */}
+                <View style={styles.textWrapper}>
+                  <Text style={styles.placeName} numberOfLines={1}>
                     {result.tags.name || "Unknown Restaurant"}
                   </Text>
-                  <Text
-                    style={{ color: "#e3e3e3", fontSize: 14, marginTop: 4 }}
-                  >
+                  <Text style={styles.placeType} numberOfLines={1}>
                     {result.tags.cuisine || result.tags.amenity}
                   </Text>
                 </View>
@@ -188,7 +154,7 @@ export default function POISearchScreen() {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -196,12 +162,68 @@ export default function POISearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 24,
     backgroundColor: "#101922",
-    padding: 16,
+  },
+  centerContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
   },
   centerText: {
     marginTop: 16,
     textAlign: "center",
     color: "#e3e3e3",
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    color: "#e3e3e3",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  noResultsText: {
+    color: "#e3e3e3",
+    fontSize: 14,
+    marginTop: 8,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#2e3a4c",
+    backgroundColor: "#1a2533",
+  },
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#2e3a4c",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  textWrapper: {
+    flex: 1,
+  },
+  placeName: {
+    color: "#e3e3e3",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  placeType: {
+    color: "#e3e3e3",
+    fontSize: 14,
+    marginTop: 4,
   },
 });
