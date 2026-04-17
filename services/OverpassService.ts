@@ -10,24 +10,30 @@ export default class OverpassService {
   static async fetchNeerAmenity(
     lat: number,
     lon: number,
-    radius = 100,
+    radius = 1000, // On a remis 1000 ici pour être cohérent avec ton écran
     amenityType: string,
   ): Promise<NeerAmenityResponse> {
-    const query = `[out:json];(node["amenity"="${amenityType}"](around:${radius},${lat},${lon});way["amenity"="${amenityType}"](around:${radius},${lat},${lon});relation["amenity"="${amenityType}"](around:${radius},${lat},${lon}););out center;`;
+    // 1. On vérifie que les coordonnées sont bien des nombres valides
+    if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+      throw new Error(`Coordonnées invalides : lat=${lat}, lon=${lon}`);
+    }
 
-    const response = await fetch(
-      "https://lambert.openstreetmap.de/api/interpreter",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({ data: query }).toString(),
+    const query = `[out:json];(node["amenity"="${amenityType}"](around:${radius},${lat},${lon});way["amenity"="${amenityType}"](around:${radius},${lat},${lon});relation["amenity"="${amenityType}"](around:${radius},${lat},${lon}););out center;`;
+    const url = "https://overpass.osm.ch/api/interpreter";
+    console.log(url, ":", query);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Octara-Maps/v3",
       },
-    );
+      body: "data=" + encodeURIComponent(query),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("ERREUR OVERPASS CRITIQUE :", response.status, errorText);
       throw new Error(`Overpass API Error: ${response.status} - ${errorText}`);
     }
 

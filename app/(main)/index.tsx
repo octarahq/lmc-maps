@@ -1,5 +1,4 @@
-import { FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
-import MoreHorIcon from "@/assets/icons/MoreHorIcon";
+import { CoffeeIcon, FoodIcon, GasIcon, ParkingIcon } from "@/assets/icons";
 import { Sidebar } from "@/components/layout/Sidebar";
 import MapProvider from "@/components/map";
 import { usePosition } from "@/contexts/PositionContext";
@@ -8,9 +7,9 @@ import {
   telemetryFeatureUsed,
   telemetryNavigationStart,
 } from "@/services/TelemetryService";
+import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { snapPointsPercent } from "@/utils/snapPoints";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
 import React from "react";
 import {
   StatusBar,
@@ -79,7 +78,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_gas");
-                  router.push("/(main)/poiresult?type=gas");
+                  showCommingSoonToast();
                 }}
               >
                 <View style={styles.itemBox}>
@@ -93,7 +92,7 @@ export default function MainScreen() {
                 style={styles.item}
                 onPress={() => {
                   telemetryFeatureUsed("home_explore_food");
-                  router.push("/(main)/poiresult?type=food");
+                  showCommingSoonToast();
                 }}
               >
                 <View style={styles.itemBox}>
@@ -106,8 +105,22 @@ export default function MainScreen() {
               <TouchableOpacity
                 style={styles.item}
                 onPress={() => {
+                  telemetryFeatureUsed("home_explore_coffee");
+                  showCommingSoonToast();
+                }}
+              >
+                <View style={styles.itemBox}>
+                  <CoffeeIcon />
+                </View>
+
+                <Text style={styles.itemLabel}>{t("items.coffee")}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => {
                   telemetryFeatureUsed("home_explore_parking");
-                  router.push("/(main)/poiresult?type=parking");
+                  showCommingSoonToast();
                 }}
               >
                 <View style={styles.itemBox}>
@@ -115,19 +128,6 @@ export default function MainScreen() {
                 </View>
 
                 <Text style={styles.itemLabel}>{t("items.parking")}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => {
-                  router.push("/(main)/(search)/search?mode=explore");
-                }}
-              >
-                <View style={styles.itemBox}>
-                  <MoreHorIcon />
-                </View>
-
-                <Text style={styles.itemLabel}>{t("items.more")}</Text>
               </TouchableOpacity>
             </View>
           </BottomSheetView>

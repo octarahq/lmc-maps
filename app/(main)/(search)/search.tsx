@@ -12,11 +12,7 @@ import {
 } from "@/services/TelemetryService";
 import { showCommingSoonToast } from "@/utils/commingSoonToast";
 import { clearRecentTrips, getRecentTrips } from "@/utils/recentTrips";
-import {
-  RelativePathString,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
   ImageBackground,
@@ -450,38 +446,16 @@ export default function SearchScreen() {
                 style={styles.chips}
               >
                 {[
-                  {
-                    icon: <GasIcon />,
-                    label: t("chip_gas"),
-                    href: "/(main)/poiresult?type=gas",
-                  },
-                  {
-                    icon: <ParkingIcon />,
-                    label: t("chip_parking"),
-                    href: "/(main)/poiresult?type=parking",
-                  },
-                  {
-                    icon: <CoffeeIcon />,
-                    label: t("chip_coffee"),
-                    href: "/(main)/poiresult?type=coffee",
-                  },
-                  {
-                    icon: <EvIcon />,
-                    label: t("chip_ev"),
-                    href: "/(main)/poiresult?type=ev",
-                  },
-                  {
-                    icon: <FoodIcon />,
-                    label: t("chip_food"),
-                    href: "/(main)/poiresult?type=food",
-                  },
+                  { icon: <GasIcon />, label: t("chip_gas") },
+                  { icon: <ParkingIcon />, label: t("chip_parking") },
+                  { icon: <CoffeeIcon />, label: t("chip_coffee") },
+                  { icon: <EvIcon />, label: t("chip_ev") },
+                  { icon: <FoodIcon />, label: t("chip_food") },
                 ].map((c) => (
                   <TouchableOpacity
                     key={c.label}
                     style={styles.chip}
-                    onPress={() =>
-                      router.push({ pathname: c.href as RelativePathString })
-                    }
+                    onPress={() => showCommingSoonToast()}
                   >
                     <View style={styles.chipIcon}>{c.icon}</View>
                     <Text style={styles.chipLabel}>{c.label}</Text>
@@ -622,7 +596,7 @@ export default function SearchScreen() {
               <View style={styles.grid}>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=food")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={topDiningImg}
@@ -635,9 +609,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() =>
-                    router.push("/(main)/poiresult?type=nightlife")
-                  }
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={nightlifeImg}
@@ -650,7 +622,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=nature")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={natureImg}
@@ -663,7 +635,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=shopping")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={shoppingImg}
@@ -676,7 +648,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=culture")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={cultureImg}
@@ -689,9 +661,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() =>
-                    router.push("/(main)/poiresult?type=activities")
-                  }
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={activityImg}
@@ -704,7 +674,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=food")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={foodImg}
@@ -717,7 +687,7 @@ export default function SearchScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.card}
-                  onPress={() => router.push("/(main)/poiresult?type=social")}
+                  onPress={() => showCommingSoonToast()}
                 >
                   <ImageBackground
                     source={socialImg}

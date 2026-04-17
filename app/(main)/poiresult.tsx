@@ -14,7 +14,7 @@ import OverpassService, {
 } from "@/services/OverpassService";
 import { telemetryNavigationStart } from "@/services/TelemetryService";
 import { router } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -30,13 +30,17 @@ export default function POISearchScreen() {
     null,
   );
   const { loading, position } = usePosition();
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     telemetryNavigationStart("poi_search_screen");
   }, []);
 
   useEffect(() => {
-    if (position) {
+    console.log("test", hasFetchedRef.current, position);
+    if (position && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      console.log("fetch");
       OverpassService.fetchNeerAmenity(
         position.latitude,
         position.longitude,
@@ -44,15 +48,16 @@ export default function POISearchScreen() {
         "restaurant",
       )
         .then((res) => {
+          console.log("Overpass results:", res);
           setResults(res);
         })
-        .catch(() => setResults([]));
+        .catch((e) => {
+          console.error("Error fetching Overpass results:", e);
+          setResults([]);
+        });
     }
-    // On écoute les coordonnées spécifiques, pas l'objet 'position' entier
-    // ni 'loading' pour éviter les appels API en boucle infinie.
   }, [position?.latitude, position?.longitude]);
 
-  // Écran de chargement uniquement au TOUT PREMIER lancement
   if (results === null) {
     return (
       <View style={styles.container}>
@@ -69,11 +74,9 @@ export default function POISearchScreen() {
     <View style={styles.container}>
       <Header title={t("title")} />
 
-      {/* On utilise ScrollView pour permettre à la page de défiler */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerRow}>
           <Text style={styles.sectionTitle}>Nearby Classic</Text>
-          {/* Petit indicateur visuel si le GPS cherche à s'affiner en arrière-plan */}
           {loading && <ActivityIndicator size="small" color="#e3e3e3" />}
         </View>
 
