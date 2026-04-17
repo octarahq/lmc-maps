@@ -12,6 +12,7 @@ import {
 import MapSnapshot, { WaypointPin } from "@/components/MapSnapshot";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
+import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import {
   telemetryCrash,
@@ -409,6 +410,7 @@ export default function RoutePlanningScreen() {
   const { name, address, lat, lng } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { settings } = useUser();
 
   const destLat = lat ? parseFloat(lat as string) : null;
   const destLng = lng ? parseFloat(lng as string) : null;
@@ -416,7 +418,9 @@ export default function RoutePlanningScreen() {
   const destAddress =
     (address as string) || (lat && lng ? `${lat}, ${lng}` : "");
 
-  const [selected, setSelected] = React.useState<TransportMode>("car");
+  const [selected, setSelected] = React.useState<TransportMode>(
+    settings.favTransportMode ?? "car",
+  );
   const [showPlanner, setShowPlanner] = React.useState(false);
   const [mapExpanded, setMapExpanded] = React.useState(false);
   const { position } = usePosition();
