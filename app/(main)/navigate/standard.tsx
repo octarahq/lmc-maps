@@ -3,6 +3,7 @@ import ShadcnMap from "@/components/ShadcnMap";
 import { useMapLayers } from "@/components/map/MapLayersContext";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
+import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import type { Coordinate } from "@/services/RouteService";
 import { useRouteService } from "@/services/RouteService";
@@ -142,6 +143,7 @@ const getEtaLabel = (seconds?: number): string => {
 
 export default function StandardNavigationScreen() {
   const { t } = createTranslator("navigate");
+  const { settings } = useUser();
   const layers = useMapLayers();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -158,6 +160,9 @@ export default function StandardNavigationScreen() {
   const [following, setFollowing] = React.useState(true);
   const suppressMapMove = React.useRef(false);
   const { height: screenHeight } = useWindowDimensions();
+  const [guideMode, setGuideMode] = React.useState<"alert" | "all" | "off">(
+    settings.voice ?? "alert",
+  );
 
   const navigationStartTrackedRef = React.useRef(false);
   React.useEffect(() => {
@@ -612,9 +617,6 @@ export default function StandardNavigationScreen() {
 
   const baseLayer = layers.mapType;
   const themeMode: "dark" | "light" = layers.darkTheme ? "dark" : "light";
-  const [volumeMode, setVolumeMode] = React.useState<
-    "mute" | "alerts" | "full"
-  >("full");
   const [speedLimit, setSpeedLimit] = React.useState<string | null>(null);
   const isCarMode = requestedMode === "car";
   const [showStepsSheet, setShowStepsSheet] = React.useState(false);
@@ -1478,16 +1480,14 @@ export default function StandardNavigationScreen() {
                 <TouchableOpacity
                   style={[
                     styles.volumeButton,
-                    volumeMode === "mute" && styles.volumeButtonActive,
+                    guideMode === "off" && styles.volumeButtonActive,
                   ]}
-                  onPress={
-                    () => showCommingSoonToast() /* setVolumeMode("mute") */
-                  }
+                  onPress={() => setGuideMode("off")}
                 >
                   <Text
                     style={[
                       styles.volumeButtonText,
-                      volumeMode === "mute" && styles.volumeButtonTextActive,
+                      guideMode === "off" && styles.volumeButtonTextActive,
                     ]}
                   >
                     {t("volumeMute")}
@@ -1497,16 +1497,16 @@ export default function StandardNavigationScreen() {
                 <TouchableOpacity
                   style={[
                     styles.volumeButton,
-                    volumeMode === "alerts" && styles.volumeButtonActive,
+                    guideMode === "alert" && styles.volumeButtonActive,
                   ]}
-                  onPress={
-                    () => showCommingSoonToast() /* setVolumeMode("alerts") */
-                  }
+                  onPress={() => {
+                    setGuideMode("alert");
+                  }}
                 >
                   <Text
                     style={[
                       styles.volumeButtonText,
-                      volumeMode === "alerts" && styles.volumeButtonTextActive,
+                      guideMode === "alert" && styles.volumeButtonTextActive,
                     ]}
                   >
                     {t("volumeAlerts")}
@@ -1516,16 +1516,16 @@ export default function StandardNavigationScreen() {
                 <TouchableOpacity
                   style={[
                     styles.volumeButton,
-                    volumeMode === "full" && styles.volumeButtonActiveFull,
+                    guideMode === "all" && styles.volumeButtonActiveFull,
                   ]}
-                  onPress={
-                    () => showCommingSoonToast() /* setVolumeMode("full") */
-                  }
+                  onPress={() => {
+                    setGuideMode("all");
+                  }}
                 >
                   <Text
                     style={[
                       styles.volumeButtonTextFull,
-                      volumeMode === "full" && styles.volumeButtonTextActive,
+                      guideMode === "all" && styles.volumeButtonTextActive,
                     ]}
                   >
                     {t("volumeFull")}
