@@ -171,6 +171,20 @@ export default function SettingsScreen() {
         ]}
       />
 
+      <SettingsSection
+        title={t("sections.1.title")} // titre: partage
+        items={[
+          {
+            title: t("sections.1.settings.0.title"), // titre: Partager votre position
+            description: t(`sections.1.settings.0.description`), // description: Partager votre position avec vos proches.
+            icon: "share-location",
+            onClick: () => {
+              router.push("/share-location");
+            },
+          },
+        ]}
+      />
+
       <BottomSelect
         ref={selectModeRef}
         title="Choisir un mode de transport"

@@ -23,6 +23,14 @@
             "description": "Utiliser la dictée vocale pour vous guider"
           }
       ]
+    }, {
+      "title": "Partage",
+      "settings": [
+        {
+          "title": "Partage de position",
+          "description": "Partagez votre position avec vos amis et votre famille"
+        }
+      ]
     }
   ]
 }
