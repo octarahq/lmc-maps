@@ -20,7 +20,9 @@ import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import * as Localization from "expo-localization";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Speech from "expo-speech";
 import React from "react";
 import {
   Animated,
@@ -689,7 +691,6 @@ export default function StandardNavigationScreen() {
     return approachingStep.duration * ratio;
   }, [approachingStep, distanceToNextManeuver]);
 
-  const stepsCount = navigationData?.steps?.length ?? 0;
   const totalDuration = navigationData?.totalDuration ?? 0;
   const totalDistance = navigationData?.totalDistance ?? 0;
   const reliableDurationForSummary = React.useMemo(() => {
@@ -1227,6 +1228,7 @@ export default function StandardNavigationScreen() {
     : routeService.isCalculating
       ? t("calculating")
       : t("waitingForRoute");
+
   const warningColor = React.useMemo(() => {
     if (!isCarMode) return "#074fa8";
     if (limitNum === null) return "#074fa8";
@@ -1473,7 +1475,15 @@ export default function StandardNavigationScreen() {
             <View style={styles.volumeSection}>
               <View style={styles.optionHeader}>
                 <Text style={styles.optionTitle}>{t("guideVolume")}</Text>
-                <MaterialIcons name="volume-up" size={20} color="#8a8a8a" />
+                <TouchableOpacity
+                  onPress={async () => {
+                    await Speech.speak(t("guideVolumeSample"), {
+                      language: Localization.getLocales()[0].languageTag,
+                    });
+                  }}
+                >
+                  <MaterialIcons name="volume-up" size={20} color="#8a8a8a" />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.volumeGrid}>

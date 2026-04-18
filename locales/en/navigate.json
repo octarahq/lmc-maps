@@ -72,5 +72,6 @@
     "download": "Download and install",
     "later": "Later",
     "installUnknownAppsPermission": "Enable \"Install unknown apps\" for Expo Go, then retry."
-  }
+  },
+  "guideVolumeSample": "Ready to navigate with you"
 }
