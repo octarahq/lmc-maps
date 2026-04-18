@@ -1,6 +1,7 @@
 {
   "name": "octara-maps",
   "main": "expo-router/entry",
+  "author": "octarahq",
   "version": "3.0.1",
   "scripts": {
     "start": "expo start",
@@ -13,7 +14,8 @@
     "expo:doctor": "npx expo-doctor",
     "gradle:check": "cd android && ./gradlew assembleDebug --no-daemon",
     "preflight": "npm run lint && npm run typecheck && npm run expo:doctor && npx expo prebuild --no-install && npm run gradle:check",
-    "eas:build:preview": "npx --yes --ignore-existing eas-cli@latest build --platform android --local --profile preview"
+    "eas:build:preview": "npx --yes --ignore-existing eas-cli@latest build --platform android --local --profile preview",
+    "eas:build:dev": "npx --yes --ignore-existing eas-cli@latest build --platform android --local --profile development"
   },
   "dependencies": {
     "@andreasnicolaou/overpass-client": "^1.4.1",
@@ -29,6 +31,7 @@
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.13",
     "expo-contacts": "^15.0.11",
+    "expo-dev-client": "~6.0.20",
     "expo-device": "^55.0.9",
     "expo-file-system": "~17.0.0",
     "expo-font": "~14.0.11",
@@ -42,6 +45,7 @@
     "expo-navigation-bar": "~5.0.10",
     "expo-notifications": "^0.32.16",
     "expo-router": "~6.0.23",
+    "expo-speech": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
