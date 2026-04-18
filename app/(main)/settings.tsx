@@ -179,7 +179,7 @@ export default function SettingsScreen() {
             description: t(`sections.1.settings.0.description`),
             icon: "share-location",
             onClick: () => {
-              router.push("/share-location");
+              router.push("/(main)/(share)/location");
             },
           },
         ]}
