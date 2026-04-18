@@ -7,9 +7,10 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 interface AvatarImgProps {
   size?: number;
   style?: StyleProp<ViewStyle | ImageStyle>;
+  src?: string | null;
 }
 
-export function AvatarImg({ size = 40, style }: AvatarImgProps) {
+export function AvatarImg({ size = 40, style, src }: AvatarImgProps) {
   const [token, setToken] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
@@ -17,7 +18,7 @@ export function AvatarImg({ size = 40, style }: AvatarImgProps) {
     OctaraService.getAccessToken().then(setToken);
   }, []);
 
-  const avatarUrl = "https://octara.xyz/api/v1/me/avatar";
+  const avatarUrl = src || "https://octara.xyz/api/v1/me/avatar";
 
   if (!token || hasError) {
     return (
