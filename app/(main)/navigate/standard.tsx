@@ -1229,6 +1229,62 @@ export default function StandardNavigationScreen() {
       ? t("calculating")
       : t("waitingForRoute");
 
+  const lastInstructionId = React.useRef("");
+  const hasAnnouncedAction = React.useRef(false);
+
+  React.useEffect(() => {
+    if (
+      !stepInstruction ||
+      stepInstruction === t("waitingForRoute") ||
+      stepInstruction === t("calculating")
+    )
+      return;
+
+    const instructionId = `${stepInstruction}`;
+
+    const speak = (text: string) => {
+      Speech.stop();
+      Speech.speak(text, {
+        language: Localization.getLocales()[0].languageTag,
+      });
+    };
+
+    if (guideMode === "all") {
+      if (lastInstructionId.current !== instructionId) {
+        let dist = Math.round(distanceToNextManeuver);
+        let unit = t("units.meters");
+        if (dist > 50 && dist <= 200) {
+          dist = Math.round(dist / 10) * 10;
+        } else if (dist > 200) {
+          dist = Math.round(dist / 100) * 100;
+        }
+
+        if (dist >= 1000) {
+          dist = Math.round(dist / 1000);
+          unit = t("units.kilometers");
+        }
+
+        speak(`${t("in")} ${dist} ${unit}, ${stepInstruction}`);
+        lastInstructionId.current = instructionId;
+        hasAnnouncedAction.current = false;
+      }
+    }
+
+    if (distanceToNextManeuver <= 100 && !hasAnnouncedAction.current) {
+      speak(stepInstruction);
+      hasAnnouncedAction.current = true;
+
+      if (guideMode === "alert") {
+        lastInstructionId.current = instructionId;
+      }
+    }
+
+    if (lastInstructionId.current !== instructionId) {
+      lastInstructionId.current = instructionId;
+      hasAnnouncedAction.current = false;
+    }
+  }, [stepInstruction, distanceToNextManeuver, guideMode]);
+
   const warningColor = React.useMemo(() => {
     if (!isCarMode) return "#074fa8";
     if (limitNum === null) return "#074fa8";

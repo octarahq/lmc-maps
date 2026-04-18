@@ -73,5 +73,10 @@
     "later": "Later",
     "installUnknownAppsPermission": "Enable \"Install unknown apps\" for Expo Go, then retry."
   },
-  "guideVolumeSample": "Ready to navigate with you"
+  "guideVolumeSample": "Ready to navigate with you",
+  "in": "In",
+  "units": {
+    "meters": "meters",
+    "kilometers": "kilometers"
+  }
 }

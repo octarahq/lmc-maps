@@ -74,5 +74,10 @@
     "later": "Plus tard",
     "installUnknownAppsPermission": "Active \"Installer des applis inconnues\" pour Expo Go, puis réessaie."
   },
-  "guideVolumeSample": "Prêt à naviguer avec vous"
+  "guideVolumeSample": "Prêt à naviguer avec vous",
+  "in": "Dans",
+  "units": {
+    "meters": "mètres",
+    "kilometers": "kilomètres"
+  }
 }
