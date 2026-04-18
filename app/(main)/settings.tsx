@@ -172,11 +172,11 @@ export default function SettingsScreen() {
       />
 
       <SettingsSection
-        title={t("sections.1.title")} // titre: partage
+        title={t("sections.1.title")}
         items={[
           {
-            title: t("sections.1.settings.0.title"), // titre: Partager votre position
-            description: t(`sections.1.settings.0.description`), // description: Partager votre position avec vos proches.
+            title: t("sections.1.settings.0.title"),
+            description: t(`sections.1.settings.0.description`),
             icon: "share-location",
             onClick: () => {
               router.push("/share-location");
