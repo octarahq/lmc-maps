@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -23,19 +26,17 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Expo
-        uses: expo/setup-expo@v3
-        with:
-          expo-version: latest
-          eas-version: latest
-
-      - name: Build APK (Local).
+      - name: Build APK (Local)
         run: npm run eas:build:preview -- --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Get version from package.json
         id: package-version
@@ -43,6 +44,7 @@ jobs:
 
       - name: Rename and Prepare APK
         run: |
+          # EAS local build met souvent l'APK à la racine ou dans un sous-dossier build
           APK_PATH=$(find . -name "*.apk" | head -n 1)
           mv "$APK_PATH" "octaramaps-${{ steps.package-version.outputs.VERSION }}.apk"
 
