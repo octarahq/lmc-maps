@@ -1,10 +1,10 @@
 import ShadcnMap from "@/components/ShadcnMap";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    LayoutChangeEvent,
-    StyleSheet,
-    View,
-    useWindowDimensions,
+  LayoutChangeEvent,
+  StyleSheet,
+  View,
+  useWindowDimensions,
 } from "react-native";
 
 import { usePosition } from "@/contexts/PositionContext";
@@ -17,6 +17,11 @@ type Props = {
   children?: React.ReactNode;
   showUserLocation?: boolean;
   showControls?: boolean;
+  showUsersPosition?: {
+    avatar_url: string;
+    latitude: number;
+    longitude: number;
+  }[];
 };
 
 export default function MapProvider({
@@ -24,12 +29,14 @@ export default function MapProvider({
   children,
   showUserLocation = true,
   showControls = true,
+  showUsersPosition = [],
 }: Props) {
   return (
     <MapProviderContent
       style={style}
       showUserLocation={showUserLocation}
       showControls={showControls}
+      showUsersPosition={showUsersPosition}
     >
       {children}
     </MapProviderContent>
@@ -41,6 +48,7 @@ function MapProviderContent({
   children,
   showUserLocation = true,
   showControls = true,
+  showUsersPosition = [],
 }: Props) {
   const layers = useMapLayers();
   const webviewRef = useRef<any>(null);
@@ -156,39 +164,46 @@ function MapProviderContent({
   }, [mapReady, layers.mapType, layers.darkTheme]);
 
   useEffect(() => {
+    if (!mapReady) {
+      if (position) pendingPositionRef.current = position;
+      return;
+    }
+
     if (!showUserLocation) {
       post({ type: "clearUserMarker" });
       setFollowUser(false);
-      return;
-    }
-
-    if (!mapReady) {
-      if (position) {
-        pendingPositionRef.current = position;
-      }
-      return;
-    }
-
-    const pos = position || pendingPositionRef.current;
-
-    if (!pos) return;
-
-    pendingPositionRef.current = null;
-
-    if (followUser) {
-      post({
-        type: "setUserMarker",
-        lat: pos.latitude,
-        lng: pos.longitude,
-        center: true,
-        offsetY: -40,
-        zoom: defaultCenterZoom,
-        animate: false,
-      });
     } else {
-      post({ type: "setUserMarker", lat: pos.latitude, lng: pos.longitude });
+      const pos = position || pendingPositionRef.current;
+      if (pos) {
+        pendingPositionRef.current = null;
+        post({
+          type: "setUserMarker",
+          lat: pos.latitude,
+          lng: pos.longitude,
+          center: followUser,
+          offsetY: followUser ? -40 : 0,
+          zoom: followUser ? defaultCenterZoom : undefined,
+          animate: false,
+        });
+      }
     }
-  }, [position, mapReady, showUserLocation, followUser]);
+
+    post({ type: "clearMarkers" });
+
+    if (showUsersPosition && showUsersPosition.length > 0) {
+      showUsersPosition.forEach((user, index) => {
+        if (user.latitude && user.longitude && user.latitude !== 0) {
+          post({
+            type: "setUserPositionShareMarker",
+            id: `viewer-${index}`,
+            lat: user.latitude,
+            lng: user.longitude,
+            avatar: user.avatar_url,
+          });
+        }
+      });
+    }
+  }, [position, mapReady, showUserLocation, followUser, showUsersPosition]);
 
   return (
     <MapCtx.Provider value={controls}>
