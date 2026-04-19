@@ -25,20 +25,11 @@ export default function ShareLocationScreen() {
   const [results, setResults] = React.useState<OctaraUser[] | null>(null);
   const [nearbyUsers, setNearbyUsers] = React.useState<OctaraUser[]>([]);
   const [actualySharing, setActualySharing] = React.useState<
-    {
-      expiresAt: string;
-      id: string;
-      toWho: {
-        id: string;
-        name: string | null;
-        mail: string;
-      };
-      whoShare: {
-        id: string;
-        name: string | null;
-        mail: string;
-      };
-    }[]
+    typeof OctaraService.fetchTargetedLocationSharingUsers extends () => Promise<
+      infer U
+    >
+      ? U
+      : never
   >([]);
   useEffect(() => {
     telemetryNavigationStart("share_location_screen");
