@@ -25,7 +25,20 @@ export default function ShareLocationScreen() {
   const [results, setResults] = React.useState<OctaraUser[] | null>(null);
   const [nearbyUsers, setNearbyUsers] = React.useState<OctaraUser[]>([]);
   const [actualySharing, setActualySharing] = React.useState<
-    { id: string; name: string; mail: string }[]
+    {
+      expiresAt: string;
+      id: string;
+      toWho: {
+        id: string;
+        name: string | null;
+        mail: string;
+      };
+      whoShare: {
+        id: string;
+        name: string | null;
+        mail: string;
+      };
+    }[]
   >([]);
   useEffect(() => {
     telemetryNavigationStart("share_location_screen");
@@ -59,6 +72,7 @@ export default function ShareLocationScreen() {
     } else {
       OctaraService.searchUsers(query)
         .then((users) => {
+          console.log(users);
           setResults(users);
         })
         .catch(() => {
@@ -108,7 +122,8 @@ export default function ShareLocationScreen() {
                   router.push({
                     pathname: "/(main)/(share)/location/view",
                     params: {
-                      userId: u.id,
+                      userId:
+                        u.whoShare.id === user?.id ? u.toWho.id : u.whoShare.id,
                     },
                   })
                 }
@@ -119,11 +134,10 @@ export default function ShareLocationScreen() {
                   </View>
                   <View style={styles.textWrapper}>
                     <Text style={styles.placeName} numberOfLines={1}>
-                      {u.name || "Unknown User"}
+                      {u.whoShare.name || "Unknown User"} {t("to")}{" "}
+                      {u.toWho.name || "Unknown User"}
                     </Text>
-                    <Text style={styles.placeType} numberOfLines={1}>
-                      {u.mail}
-                    </Text>
+                    <Text style={styles.placeType} numberOfLines={1}></Text>
                   </View>
                 </View>
               </TouchableOpacity>
