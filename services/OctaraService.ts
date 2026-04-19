@@ -141,7 +141,7 @@ export class OctaraService {
   }
 
   static getWebSocketUrl(token: string, role: "sharer" | "viewer") {
-    return `ws://octara.xyz/websocket/v1/user/location?token=${token}&role=${role}`;
+    return `wss://octara.xyz/websocket/v1/user/location?token=${token}&role=${role}`;
   }
 
   static async searchUsers(query: string): Promise<OctaraUser[]> {
