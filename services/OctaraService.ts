@@ -207,4 +207,46 @@ export class OctaraService {
 
     return [];
   }
+
+  static async fetchTargetedLocationSharingUsers(userId?: string): Promise<
+    {
+      id: string;
+      name: string;
+      mail: string;
+    }[]
+  > {
+    const token = await this.getAccessToken();
+    if (!token) return [];
+
+    try {
+      const response = await fetch(
+        `https://octara.xyz/api/location/share${userId ? `?userId=${userId}` : ""}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      return data.shares.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        mail: user.email,
+      }));
+    } catch (error) {
+      console.error(
+        "[OctaraService] Failed to fetch targeted location sharing users:",
+        error,
+      );
+    }
+
+    return [];
+  }
 }

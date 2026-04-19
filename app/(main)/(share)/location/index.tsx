@@ -24,6 +24,9 @@ export default function ShareLocationScreen() {
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<OctaraUser[] | null>(null);
   const [nearbyUsers, setNearbyUsers] = React.useState<OctaraUser[]>([]);
+  const [actualySharing, setActualySharing] = React.useState<
+    { id: string; name: string; mail: string }[]
+  >([]);
   useEffect(() => {
     telemetryNavigationStart("share_location_screen");
   }, []);
@@ -39,6 +42,13 @@ export default function ShareLocationScreen() {
         })
         .catch(() => {
           setNearbyUsers([]);
+        });
+      OctaraService.fetchTargetedLocationSharingUsers()
+        .then((users) => {
+          setActualySharing(users);
+        })
+        .catch(() => {
+          setActualySharing([]);
         });
     }
   }, [user, t]);
@@ -88,6 +98,38 @@ export default function ShareLocationScreen() {
             />
           </View>
         </View>
+        {actualySharing.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>{t("actually_sharing")}</Text>
+            {actualySharing.map((u) => (
+              <TouchableOpacity
+                key={u.id}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(main)/(share)/location/view",
+                    params: {
+                      userId: u.id,
+                    },
+                  })
+                }
+              >
+                <View style={styles.card}>
+                  <View style={styles.iconWrapper}>
+                    <AvatarImg id={u.id} />
+                  </View>
+                  <View style={styles.textWrapper}>
+                    <Text style={styles.placeName} numberOfLines={1}>
+                      {u.name || "Unknown User"}
+                    </Text>
+                    <Text style={styles.placeType} numberOfLines={1}>
+                      {u.mail}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
         {!query ? (
           nearbyUsers.length === 0 ? (
             <View style={styles.centerContainer}>

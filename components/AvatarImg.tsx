@@ -8,9 +8,10 @@ interface AvatarImgProps {
   size?: number;
   style?: StyleProp<ViewStyle | ImageStyle>;
   src?: string | null;
+  id?: string;
 }
 
-export function AvatarImg({ size = 40, style, src }: AvatarImgProps) {
+export function AvatarImg({ size = 40, style, src, id }: AvatarImgProps) {
   const [token, setToken] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
@@ -18,7 +19,10 @@ export function AvatarImg({ size = 40, style, src }: AvatarImgProps) {
     OctaraService.getAccessToken().then(setToken);
   }, []);
 
-  const avatarUrl = src || "https://octara.xyz/api/v1/me/avatar";
+  const avatarUrl =
+    src || id
+      ? `https://octara.xyz/api/v1/users/${id}/avatar`
+      : "https://octara.xyz/api/v1/me/avatar";
 
   if (!token || hasError) {
     return (
