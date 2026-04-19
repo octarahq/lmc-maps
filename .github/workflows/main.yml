@@ -1,0 +1,54 @@
+name: Build and Release APK
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo
+        uses: expo/setup-expo@v3
+        with:
+          expo-version: latest
+          eas-version: latest
+
+      - name: Build APK (Local).
+        run: npm run eas:build:preview -- --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Get version from package.json
+        id: package-version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Rename and Prepare APK
+        run: |
+          APK_PATH=$(find . -name "*.apk" | head -n 1)
+          mv "$APK_PATH" "octaramaps-${{ steps.package-version.outputs.VERSION }}.apk"
+
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: octaramaps-${{ steps.package-version.outputs.VERSION }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
