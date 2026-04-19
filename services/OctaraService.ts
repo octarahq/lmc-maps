@@ -208,11 +208,78 @@ export class OctaraService {
     return [];
   }
 
+  static async shareLocationWithUser(
+    targetUserId: string,
+    durationHours: number,
+  ): Promise<boolean> {
+    const token = await this.getAccessToken();
+    if (!token) return false;
+
+    try {
+      const response = await fetch(`https://octara.xyz/api/location/share`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ targetUserId, durationHours }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error: ${response.status} - ${errorText}`);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("[OctaraService] Failed to share location:", error);
+    }
+    return false;
+  }
+
+  static async stopSharingLocation(targetUserId: string): Promise<boolean> {
+    const token = await this.getAccessToken();
+    if (!token) return false;
+
+    try {
+      const response = await fetch(
+        `https://octara.xyz/api/location/share?targetUserId=${targetUserId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("[OctaraService] Failed to stop sharing location:", error);
+      return false;
+    }
+  }
+
   static async fetchTargetedLocationSharingUsers(userId?: string): Promise<
     {
+      expiresAt: string;
       id: string;
-      name: string;
-      mail: string;
+      toWho: {
+        id: string;
+        name: string | null;
+        email: string;
+        avatar_url: string;
+      };
+      whoShare: {
+        id: string;
+        name: string | null;
+        email: string;
+        avatar_url: string;
+      };
     }[]
   > {
     const token = await this.getAccessToken();
@@ -235,11 +302,7 @@ export class OctaraService {
 
       const data = await response.json();
 
-      return data.shares.map((user: any) => ({
-        id: user.id,
-        name: user.name,
-        mail: user.email,
-      }));
+      return data.shares;
     } catch (error) {
       console.error(
         "[OctaraService] Failed to fetch targeted location sharing users:",
