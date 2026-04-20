@@ -10,10 +10,9 @@ export default class OverpassService {
   static async fetchNeerAmenity(
     lat: number,
     lon: number,
-    radius = 1000, // On a remis 1000 ici pour être cohérent avec ton écran
+    radius = 1000,
     amenityType: string,
   ): Promise<NeerAmenityResponse> {
-    // 1. On vérifie que les coordonnées sont bien des nombres valides
     if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
       throw new Error(`Coordonnées invalides : lat=${lat}, lon=${lon}`);
     }
