@@ -7,10 +7,7 @@ export default function RedirectPage() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
-    console.log("[RedirectPage] Redirect route reached with params:", params);
-
     const timer = setTimeout(() => {
-      console.log("[RedirectPage] Auto-redirecting to /(main)...");
       router.replace("/(main)");
     }, 2000);
 
@@ -23,7 +20,7 @@ export default function RedirectPage() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#fff",
+        backgroundColor: "#000",
       }}
     >
       <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 10 }}>
