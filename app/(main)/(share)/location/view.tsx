@@ -1,16 +1,14 @@
 import Header from "@/components/layout/Header";
 import MapProvider from "@/components/map";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocationWebSocket } from "@/hooks/use-location-websocket";
+import { useLocationSharing } from "@/contexts/LocationSharingContext";
 import { createTranslator } from "@/i18n";
 import { OctaraService, OctaraUser } from "@/services/OctaraService";
 import { telemetryNavigationStart } from "@/services/TelemetryService";
-import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -23,28 +21,19 @@ export default function ShareLocationViewScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const { isLoading, user } = useAuth();
 
-  const { isConnected: isSharerConnected, sendLocation } =
-    useLocationWebSocket("sharer");
-  const { isConnected: isViewerConnected, viewersData } =
-    useLocationWebSocket("viewer");
-  const locationSubscription = useRef<Location.LocationSubscription | null>(
-    null,
-  );
+  const {
+    isSharing,
+    sharingWith,
+    viewersData,
+    startSharing,
+    stopSharing,
+    connectToViewer,
+    disconnectViewer,
+  } = useLocationSharing();
 
-  const [isTargetSharingWithMe, setIsTargetSharingWithMe] = useState(false);
-  const [isMeSharingWithTarget, setIsMeSharingWithTarget] = useState(false);
   const [targetUser, setTargetUser] = useState<OctaraUser | null>(null);
-
-  const usersPositions =
-    viewersData?.lat && viewersData?.lng
-      ? [
-          {
-            avatar_url: targetUser?.avatar_url || "",
-            latitude: viewersData.lat,
-            longitude: viewersData.lng,
-          },
-        ]
-      : [];
+  const [fetchingTarget, setFetchingTarget] = useState(true);
+  const [sharingInProgress, setSharingInProgress] = useState(false);
 
   useEffect(() => {
     telemetryNavigationStart("share_location_view_screen");
@@ -57,185 +46,187 @@ export default function ShareLocationViewScreen() {
       return;
     }
 
-    if (user && userId) {
-      OctaraService.fetchTargetedLocationSharingUsers(userId)
-        .then((shares) => {
-          if (shares && shares.length > 0) {
-            const shareFromTarget = shares.find(
-              (s: any) => s.whoShare.id === userId && s.toWho.id === user.id,
-            );
-            const shareToTarget = shares.find(
-              (s: any) => s.whoShare.id === user.id && s.toWho.id === userId,
-            );
+    if (!user || !userId) return;
 
-            setIsTargetSharingWithMe(!!shareFromTarget);
-            setIsMeSharingWithTarget(!!shareToTarget);
+    setFetchingTarget(true);
+    connectToViewer(userId);
 
-            if (shareFromTarget) setTargetUser(shareFromTarget.whoShare);
-            else if (shareToTarget) setTargetUser(shareToTarget.toWho);
-
-            if (shareToTarget) {
-              startLiveTracking();
-            }
-          } else {
-            setIsTargetSharingWithMe(false);
-            setIsMeSharingWithTarget(false);
+    OctaraService.fetchTargetedLocationSharingUsers(userId)
+      .then((shares) => {
+        if (shares && shares.length > 0) {
+          const shareFromTarget = shares.find(
+            (s: any) => s.whoShare.id === userId,
+          );
+          if (shareFromTarget) {
+            setTargetUser(shareFromTarget.whoShare);
+            return;
           }
-        })
-        .catch((err) => {
-          console.error("Erreur lors de la récupération des partages:", err);
+          const shareToTarget = shares.find((s: any) => s.toWho.id === userId);
+          if (shareToTarget) {
+            setTargetUser(shareToTarget.toWho);
+            return;
+          }
+        }
+
+        if (userId === user.id) {
+          setTargetUser(user);
+          return;
+        }
+
+        return OctaraService.searchUsers(userId).then((users) => {
+          if (users.length > 0) {
+            setTargetUser(users[0]);
+          } else {
+            return OctaraService.fetchNearbyUsers().then((nearby) => {
+              const found = nearby.find((u) => u.id === userId);
+              if (found) setTargetUser(found);
+            });
+          }
         });
-    }
-  }, [user, userId, isLoading, t]);
+      })
+      .catch(() => {})
+      .finally(() => setFetchingTarget(false));
 
-  useEffect(() => {
     return () => {
-      stopLiveTracking();
+      disconnectViewer();
     };
-  }, []);
+  }, [user, userId, isLoading]);
 
-  const handleSharePosition = () => {
-    if (!userId) return;
-
-    OctaraService.shareLocationWithUser(userId, 1).then((result) => {
-      ToastAndroid.show(
-        result ? t("share_success") : t("share_failure"),
-        ToastAndroid.SHORT,
-      );
-      if (result) {
-        setIsMeSharingWithTarget(true);
-        startLiveTracking();
-      }
-    });
+  const timeAgo = (timestamp: number) => {
+    if (!timestamp) return "...";
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return t("just_now", { count: seconds });
+    const minutes = Math.floor(seconds / 60);
+    return t("minutes_ago", { count: minutes });
   };
 
-  const startLiveTracking = async () => {
-    // Évite de lancer deux instances de tracking
-    if (locationSubscription.current) return;
-
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      ToastAndroid.show(
-        "Permission de localisation requise",
-        ToastAndroid.SHORT,
-      );
-      return;
-    }
-
-    locationSubscription.current = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.High,
-        timeInterval: 5000,
-        distanceInterval: 10,
-      },
-      (location) => {
-        sendLocation(
-          location.coords.latitude,
-          location.coords.longitude,
-          // altitude, battery
-        );
-        console.log("Position envoyée via WebSocket !");
-      },
-    );
-  };
-
-  const stopLiveTracking = () => {
-    if (locationSubscription.current) {
-      locationSubscription.current.remove();
-      locationSubscription.current = null;
+  const handleSharePosition = async () => {
+    if (!userId || sharingInProgress) return;
+    setSharingInProgress(true);
+    try {
+      await startSharing(userId);
+      ToastAndroid.show(t("share_success"), ToastAndroid.SHORT);
+    } catch (err) {
+      ToastAndroid.show(t("share_failure"), ToastAndroid.SHORT);
+    } finally {
+      setSharingInProgress(false);
     }
   };
 
-  const handleStopSharing = () => {
-    stopLiveTracking();
-
-    setIsMeSharingWithTarget(false);
-
-    OctaraService.stopSharingLocation(userId);
-
-    ToastAndroid.show("Partage arrêté", ToastAndroid.SHORT);
+  const handleStopSharing = async () => {
+    await stopSharing();
+    ToastAndroid.show(t("sharing_stopped"), ToastAndroid.SHORT);
   };
 
-  if (isLoading) {
+  if (isLoading || (fetchingTarget && !targetUser)) {
     return (
       <View style={styles.container}>
         <Header title={t("title")} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#e3e3e3" />
+          <ActivityIndicator size="large" color="#0d7ff2" />
           <Text style={styles.centerText}>{t("loading")}</Text>
         </View>
       </View>
     );
   }
 
-  const isReceivingDataFromTarget =
-    viewersData && viewersData.sharerId === userId;
+  const isMeSharingWithThisUser = isSharing && sharingWith === userId;
+  const lastUpdate = viewersData?.timestamp
+    ? timeAgo(viewersData.timestamp)
+    : null;
+
+  const usersPositions =
+    viewersData?.lat && viewersData?.lng
+      ? [
+          {
+            avatar_url: targetUser?.avatar_url || "",
+            latitude: viewersData.lat,
+            longitude: viewersData.lng,
+          },
+        ]
+      : [];
+
+  const displayName =
+    targetUser?.name || targetUser?.email || t("unknown_user");
 
   return (
     <View style={styles.container}>
       <Header title={t("title")} />
 
-      <View>
-        <Text style={styles.centerText}>
-          {isTargetSharingWithMe && targetUser
-            ? `${targetUser.name} partage sa position avec vous.`
-            : targetUser
-              ? `${targetUser.name} ${t("not_sharing")}`
-              : t("not_sharing")}
-        </Text>
+      <View style={styles.infoContainer}>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusText}>{displayName}</Text>
+          <View
+            style={[
+              styles.badge,
+              { backgroundColor: viewersData ? "#4ade8020" : "#ff444420" },
+            ]}
+          >
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: viewersData ? "#4ade80" : "#ff4444" },
+              ]}
+            />
+            <Text
+              style={[
+                styles.badgeText,
+                { color: viewersData ? "#4ade80" : "#ff4444" },
+              ]}
+            >
+              {viewersData ? t("online") : t("offline")}
+            </Text>
+          </View>
+        </View>
+
+        {lastUpdate && (
+          <Text style={styles.timeText}>
+            {t("updated")} {lastUpdate}
+          </Text>
+        )}
       </View>
 
-      <MapProvider
-        showUserLocation={false}
-        showControls={false}
-        showUsersPosition={usersPositions}
-      />
+      <View style={styles.mapWrapper}>
+        <MapProvider
+          showUserLocation={true}
+          showControls={false}
+          style={styles.map}
+          goTo={
+            viewersData
+              ? { lat: viewersData.lat, lng: viewersData.lng }
+              : undefined
+          }
+          showUsersPosition={
+            usersPositions.length > 0 ? usersPositions : undefined
+          }
+        />
+      </View>
 
-      <View style={styles.actionArea}>
-        {!isMeSharingWithTarget ? (
+      <View style={styles.footer}>
+        {!isMeSharingWithThisUser ? (
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.primaryButton,
+              sharingInProgress && styles.disabledButton,
+            ]}
             onPress={handleSharePosition}
+            disabled={sharingInProgress}
           >
-            <Text style={styles.actionButtonText}>{t("share_position")}</Text>
+            {sharingInProgress ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>{t("share_position")}</Text>
+            )}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              {
-                backgroundColor: "#8b0000",
-              },
-            ]}
-            onPress={() => handleStopSharing()}
+            style={styles.dangerButton}
+            onPress={handleStopSharing}
           >
-            <Text style={styles.actionButtonText}>Arrêter le partage</Text>
+            <Text style={styles.buttonText}>{t("stop_sharing")}</Text>
           </TouchableOpacity>
         )}
       </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {isTargetSharingWithMe && isReceivingDataFromTarget && (
-          <View style={styles.card}>
-            <View style={styles.textWrapper}>
-              <Text
-                style={[
-                  styles.placeType,
-                  { fontFamily: "monospace", marginTop: 10 },
-                ]}
-              >
-                {JSON.stringify(viewersData, null, 2)}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {isTargetSharingWithMe && !isReceivingDataFromTarget && (
-          <Text style={styles.centerText}>
-            En attente de la position de {targetUser?.name}...
-          </Text>
-        )}
-      </ScrollView>
     </View>
   );
 }
@@ -243,8 +234,8 @@ export default function ShareLocationViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 24,
     backgroundColor: "#101922",
+    paddingTop: 24,
   },
   centerContainer: {
     justifyContent: "center",
@@ -256,74 +247,89 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#e3e3e3",
   },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+  infoContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
-  sectionTitle: {
-    color: "#e3e3e3",
-    fontSize: 18,
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  statusText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    flex: 1,
+  },
+  badge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  badgeText: {
+    fontSize: 12,
     fontWeight: "bold",
+    textTransform: "uppercase",
   },
-  searchArea: { paddingHorizontal: 12 },
-  searchBox: {
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: "#12202a",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    marginBottom: 12,
+  timeText: {
+    color: "#90adcb",
+    fontSize: 14,
+    marginTop: 4,
   },
-  searchIcon: { color: "#90adcb", marginRight: 8 },
-  input: { flex: 1, color: "#fff", fontSize: 16 },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 24,
+  mapWrapper: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderRadius: 28,
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: "#2e3a4c",
     backgroundColor: "#1a2533",
   },
-  iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#2e3a4c",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  textWrapper: {
+  map: {
     flex: 1,
   },
-  placeName: {
-    color: "#e3e3e3",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  placeType: {
-    color: "#e3e3e3",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  actionArea: {
+  footer: {
     paddingHorizontal: 16,
-    marginBottom: 12,
-    marginTop: 24,
+    paddingBottom: 30,
   },
-  actionButton: {
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#2e3a4c",
+  primaryButton: {
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: "#0d7ff2",
     justifyContent: "center",
     alignItems: "center",
+    elevation: 8,
+    shadowColor: "#0d7ff2",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  actionButtonText: {
-    color: "#e3e3e3",
+  disabledButton: {
+    opacity: 0.6,
+  },
+  dangerButton: {
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: "#ff4444",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
   },
 });
