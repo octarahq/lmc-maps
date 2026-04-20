@@ -7,8 +7,8 @@ import {
 } from "@react-navigation/native";
 import Constants from "expo-constants";
 import { useKeepAwake } from "expo-keep-awake";
-import * as Linking from "expo-linking";
 import * as NavigationBar from "expo-navigation-bar";
+import * as Notifications from "expo-notifications";
 import { Slot, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
@@ -21,7 +21,10 @@ import {
 } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { AuthProvider } from "../contexts/AuthContext";
 import { HapticSettingsProvider } from "../contexts/HapticSettingsContext";
+import { LocationSharingProvider } from "../contexts/LocationSharingContext";
 import { PermissionsProvider } from "../contexts/PermissionsContext";
 import { UserProvider, useUser } from "../contexts/UserContext";
 
@@ -32,7 +35,45 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initTelemetry } from "@/services/TelemetryInit";
 import { telemetryAppStart } from "@/services/TelemetryService";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export const unstable_settings = {};
+
+export default function RootLayout() {
+  useEffect(() => {
+    try {
+      require("@/services/LocationTask");
+    } catch (e) {
+      console.warn("[RootLayout] Could not register LocationTask:", e);
+    }
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <PermissionsProvider>
+        <HapticSettingsProvider>
+          <UserProvider>
+            <AuthProvider>
+              <LocationSharingProvider>
+                <UpdateProvider>
+                  <InnerLayout />
+                </UpdateProvider>
+              </LocationSharingProvider>
+            </AuthProvider>
+          </UserProvider>
+        </HapticSettingsProvider>
+      </PermissionsProvider>
+    </ErrorBoundary>
+  );
+}
 
 function SplashScreenOverlay() {
   return (
@@ -147,13 +188,6 @@ function InnerLayout() {
     }
   }, [colorScheme, pathname]);
 
-  useEffect(() => {
-    console.log(
-      "[RootLayout] Linking.createURL('redirect') =",
-      Linking.createURL("redirect"),
-    );
-  }, []);
-
   return (
     <>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -196,26 +230,6 @@ function InnerLayout() {
       <UpdateDialog />
       {showSplash && <SplashScreenOverlay />}
     </>
-  );
-}
-
-import { AuthProvider } from "../contexts/AuthContext";
-
-export default function RootLayout() {
-  return (
-    <ErrorBoundary>
-      <PermissionsProvider>
-        <HapticSettingsProvider>
-          <UserProvider>
-            <AuthProvider>
-              <UpdateProvider>
-                <InnerLayout />
-              </UpdateProvider>
-            </AuthProvider>
-          </UserProvider>
-        </HapticSettingsProvider>
-      </PermissionsProvider>
-    </ErrorBoundary>
   );
 }
 
