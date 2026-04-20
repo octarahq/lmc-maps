@@ -11,6 +11,13 @@
     "alert": "Alerts only",
     "all": "Full voice guidance"
   },
+  "map_styles": {
+    "standard": "Standard",
+    "standard_dark": "Standard dark",
+    "satelite": "Satelite",
+    "terrain": "Terrain",
+    "terrain_dark": "Terrain dark"
+  },
   "sections": [
     {
       "title": "Navigation",
@@ -21,6 +28,10 @@
         {
           "title": "Voice guidance",
           "description": "Use voice dictation to guide you"
+        },
+        {
+          "title": "Map style",
+          "description": "Choose your preferred map style"
         }
       ]
     }, {
@@ -28,7 +39,7 @@
       "settings": [
         {
           "title": "Location sharing",
-          "description": "Share your location with friends and family"
+          "description": "Share your location with nearby"
         }
       ]
     }

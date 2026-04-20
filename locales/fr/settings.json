@@ -11,6 +11,13 @@
     "alert": "Alertes uniquement",
     "all": "Guidage vocal complet"
   },
+  "map_styles": {
+    "standard": "Standard",
+    "standard_dark": "Standard sombre",
+    "satelite": "Satellite",
+    "terrain": "Terrain",
+    "terrain_dark": "Terrain sombre"
+  },
   "sections": [
     {
       "title": "Navigation",
@@ -21,6 +28,10 @@
           {
             "title": "Guidage vocal",
             "description": "Utiliser la dictée vocale pour vous guider"
+          },
+          {
+            "title": "Style de carte",
+            "description": "Choisissez votre style de carte préféré"
           }
       ]
     }, {
@@ -28,7 +39,7 @@
       "settings": [
         {
           "title": "Partage de position",
-          "description": "Partagez votre position avec vos amis et votre famille"
+          "description": "Partagez votre position avec vos proches"
         }
       ]
     }

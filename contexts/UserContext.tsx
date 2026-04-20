@@ -13,6 +13,12 @@ export type UserProfile = {
   settings: {
     favTransportMode: "car" | "transit" | "bike" | "walk";
     voice: "alert" | "all" | "off";
+    mapStyle?:
+      | "standard"
+      | "standard_dark"
+      | "satelite"
+      | "terrain"
+      | "terrain_dark";
   };
 };
 
@@ -63,6 +69,7 @@ function loadProfile(): Promise<UserProfile & { saved?: SavedPlaces }> {
       settings: {
         favTransportMode: "car",
         voice: "alert",
+        mapStyle: "satelite",
       },
     };
   });
@@ -81,6 +88,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     settings: {
       favTransportMode: "car",
       voice: "alert",
+      mapStyle: "satelite",
     },
   });
   const [saved, setSaved] = useState<SavedPlaces>({
@@ -105,6 +113,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         settings: {
           favTransportMode: p.settings?.favTransportMode || "car",
           voice: p.settings?.voice || "alert",
+          mapStyle: p.settings?.mapStyle || "satelite",
         },
       });
       if ((p as any).saved) {

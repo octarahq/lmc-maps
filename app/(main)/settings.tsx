@@ -121,6 +121,7 @@ export default function SettingsScreen() {
   const { isLoading } = useAuth();
   const selectModeRef = useRef<BottomSelectHandle>(null);
   const selectVoiceRef = useRef<BottomSelectHandle>(null);
+  const selectCardThemeRef = useRef<BottomSelectHandle>(null);
   const { settings, setSettings } = useUser();
 
   useEffect(() => {
@@ -166,6 +167,14 @@ export default function SettingsScreen() {
             icon: "volume-up",
             onClick: () => {
               if (selectVoiceRef.current) selectVoiceRef.current.open();
+            },
+          },
+          {
+            title: t("sections.0.settings.2.title"),
+            description: t("sections.0.settings.2.description"),
+            icon: "map",
+            onClick: () => {
+              if (selectCardThemeRef.current) selectCardThemeRef.current.open();
             },
           },
         ]}
@@ -222,6 +231,41 @@ export default function SettingsScreen() {
           setSettings({
             ...settings,
             voice: sel as UserProfile["settings"]["voice"],
+          })
+        }
+      />
+      <BottomSelect
+        ref={selectCardThemeRef}
+        title="Choisir le thème de la carte"
+        items={[
+          {
+            key: "standard",
+            label: t("map_theme.standard"),
+            value: "standard",
+          },
+          {
+            key: "standard_dark",
+            label: t("map_theme.standard_dark"),
+            value: "standard_dark",
+          },
+          {
+            key: "satelite",
+            label: t("map_theme.satelite"),
+            value: "satelite",
+          },
+          { key: "terrain", label: t("map_theme.terrain"), value: "terrain" },
+          {
+            key: "terrain_dark",
+            label: t("map_theme.terrain_dark"),
+            value: "terrain_dark",
+          },
+        ]}
+        mode="single"
+        initialSelected={settings.mapStyle}
+        onChange={(sel) =>
+          setSettings({
+            ...settings,
+            mapStyle: sel as UserProfile["settings"]["mapStyle"],
           })
         }
       />
