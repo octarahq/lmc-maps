@@ -17,6 +17,11 @@ const frSettings = require("./fr/settings.json");
 const frTripHistory = require("./fr/trip_history.json");
 const frPoiSearch = require("./fr/poi_search.json");
 
+const enShareLocation = require("./en/share_location.json");
+const enShareLocationView = require("./en/share_location_view.json");
+const frShareLocation = require("./fr/share_location.json");
+const frShareLocationView = require("./fr/share_location_view.json");
+
 const translations = {
   fr: {
     onboarding: frOnboarding,
@@ -28,6 +33,8 @@ const translations = {
     place: frPlace,
     trip_history: frTripHistory,
     poi_search: frPoiSearch,
+    share_location: frShareLocation,
+    share_location_view: frShareLocationView,
   },
   en: {
     onboarding: enOnboarding,
@@ -39,6 +46,8 @@ const translations = {
     place: enPlace,
     trip_history: enTripHistory,
     poi_search: enPoiSearch,
+    share_location: enShareLocation,
+    share_location_view: enShareLocationView,
   },
 };
 

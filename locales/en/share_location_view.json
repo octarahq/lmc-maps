@@ -1,0 +1,20 @@
+{
+    "title": "Location Tracking",
+    "loading": "Loading data...",
+    "login_required": "Login required",
+    "share_position": "Share my position",
+    "stop_sharing": "Stop sharing",
+    "share_success": "Sharing enabled",
+    "share_failure": "Sharing failed",
+    "sharing_stopped": "Sharing stopped",
+    "online": "Online",
+    "offline": "Offline",
+    "updated": "Updated",
+    "just_now": "just now",
+    "minutes_ago_one": "{{count}} minute ago",
+    "minutes_ago_other": "{{count}} minutes ago",
+    "unknown_user": "Unknown user",
+    "notification_title": "Location Sharing Active",
+    "notification_body": "You are sharing your location. Tap to stop or manage.",
+    "stop_sharing_action": "Stop sharing"
+}

@@ -1,0 +1,12 @@
+{
+    "title": "Share Location",
+    "placeholder": "Search for a friend...",
+    "actually_sharing": "Current shares",
+    "nearby": "Nearby",
+    "no_nearby": "No users nearby",
+    "searching": "Searching...",
+    "no_results": "No results",
+    "loading": "Loading...",
+    "login_required": "Login required to share location",
+    "to": "to"
+}

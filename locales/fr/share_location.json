@@ -1,0 +1,12 @@
+{
+    "title": "Partager ma position",
+    "placeholder": "Rechercher un ami...",
+    "actually_sharing": "Partages en cours",
+    "nearby": "À proximité",
+    "no_nearby": "Aucun utilisateur à proximité",
+    "searching": "Recherche...",
+    "no_results": "Aucun résultat",
+    "loading": "Chargement...",
+    "login_required": "Connexion requise pour partager votre position",
+    "to": "à"
+}
