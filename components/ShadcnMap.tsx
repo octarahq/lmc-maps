@@ -22,22 +22,23 @@ const ShadcnMap = React.forwardRef<any, Props>(
         html, body { height:100%; margin:0; padding:0; background:#000; overflow:hidden; }
 
         .custom-pin {
+          position: relative;
+          width: 40px;
+          height: 50px;
           display: flex;
           flex-direction: column;
           align-items: center;
+          min-width: 40px;
         }
 
         .pin-circle {
           width: 40px;
           height: 40px;
-          background: white;
           border-radius: 50%;
           border: 2px solid #0d7ff2;
+          background: #1a2533;
           overflow: hidden;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+          z-index: 2;
         }
 
         .pin-avatar {
@@ -52,7 +53,8 @@ const ShadcnMap = React.forwardRef<any, Props>(
           border-left: 8px solid transparent;
           border-right: 8px solid transparent;
           border-top: 10px solid #0d7ff2;
-          margin-top: -1px;
+          margin-top: -2px;
+          z-index: 1;
         }
 
         #mapViewport {
@@ -243,40 +245,43 @@ const ShadcnMap = React.forwardRef<any, Props>(
               }
             }
             if (m.type === 'setUserPositionShareMarker') {
-              const lat = m.lat; const lng = m.lng;
-              if (m.avatar) {
-                const customIcon = L.divIcon({
-                  className: '',
+              const lat = m.lat; 
+              const lng = m.lng;
+              const markerId = m.id || 'target-user';
+
+              markers.forEach(mk => { if(mk.options.id === markerId) map.removeLayer(mk); });
+              markers = markers.filter(mk => mk.options.id !== markerId);
+
+              const customIcon = L.divIcon({
+                  className: 'custom-pin-container',
                   html: \`
-                    <div class="custom-pin">
-                      <div class="pin-circle">
-                        <img src="\${m.avatar}" class="pin-avatar" />
+                      <div class="custom-pin">
+                          <div class="pin-circle" style="background-color: white;">
+                              <img src="\${m.avatar}" 
+                                  class="pin-avatar" 
+                                  onload="this.style.opacity=1" 
+                                  onerror="this.parentElement.style.backgroundColor='#0d7ff2'"
+                                  style="opacity:0; width:40px; height:40px; border-radius:50%;" />
+                          </div>
+                          <div class="pin-tip"></div>
                       </div>
-                      <div class="pin-tip"></div>
-                    </div>
                   \`,
                   iconSize: [40, 50],
                   iconAnchor: [20, 50]
-                });
+              });
 
-                const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-                
-                if (!m.id || m.id === 'me') {
-                    if (userMarker) map.removeLayer(userMarker);
-                    userMarker = marker;
-                } else {
-                    markers.push(marker);
-                }
+              const marker = L.marker([lat, lng], { 
+                  icon: customIcon, 
+                  id: markerId,
+                  zIndexOffset: 1000 
+              }).addTo(map);
 
-              } else {
-                if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
-                userMarker = L.circleMarker([lat, lng], { radius: 8, color: '#fff', fillColor: '#0d7ff2', fillOpacity: 1, weight: 2 }).addTo(map);
-              }
-
+              markers.push(marker);
+              
               if (m.center) {
-                map.setView([lat, lng], m.zoom || map.getZoom(), { animate: m.animate !== false });
+                  map.setView([lat, lng], m.zoom || map.getZoom(), { animate: true });
               }
-            }  
+          } 
             if (m.type === 'clearUserMarker') {
               if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
             }

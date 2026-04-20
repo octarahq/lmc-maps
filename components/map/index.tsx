@@ -22,6 +22,7 @@ type Props = {
     latitude: number;
     longitude: number;
   }[];
+  goTo?: { lat: number; lng: number };
 };
 
 export default function MapProvider({
@@ -30,6 +31,7 @@ export default function MapProvider({
   showUserLocation = true,
   showControls = true,
   showUsersPosition = [],
+  goTo,
 }: Props) {
   return (
     <MapProviderContent
@@ -37,6 +39,7 @@ export default function MapProvider({
       showUserLocation={showUserLocation}
       showControls={showControls}
       showUsersPosition={showUsersPosition}
+      goTo={goTo}
     >
       {children}
     </MapProviderContent>
@@ -49,6 +52,7 @@ function MapProviderContent({
   showUserLocation = true,
   showControls = true,
   showUsersPosition = [],
+  goTo,
 }: Props) {
   const layers = useMapLayers();
   const webviewRef = useRef<any>(null);
@@ -169,6 +173,10 @@ function MapProviderContent({
       return;
     }
 
+    if (goTo) {
+      post({ type: "panTo", lat: goTo.lat, lng: goTo.lng });
+    }
+
     if (!showUserLocation) {
       post({ type: "clearUserMarker" });
       setFollowUser(false);
@@ -191,11 +199,11 @@ function MapProviderContent({
     post({ type: "clearMarkers" });
 
     if (showUsersPosition && showUsersPosition.length > 0) {
-      showUsersPosition.forEach((user, index) => {
-        if (user.latitude && user.longitude && user.latitude !== 0) {
+      showUsersPosition.forEach((user) => {
+        if (user.latitude && user.longitude) {
           post({
             type: "setUserPositionShareMarker",
-            id: `viewer-${index}`,
+            id: user.avatar_url,
             lat: user.latitude,
             lng: user.longitude,
             avatar: user.avatar_url,
