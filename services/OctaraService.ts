@@ -33,25 +33,18 @@ export class OctaraService {
   static async login(): Promise<string | null> {
     try {
       const authUrl = this.getAuthorizationUrl();
-      console.log("[OctaraService] Initiating login with URL:", authUrl);
-      console.log("[OctaraService] Expected REDIRECT_URI:", REDIRECT_URI);
 
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         REDIRECT_URI,
       );
-      console.log("[OctaraService] WebBrowser result:", result);
 
       if (result.type === "success") {
         const { url } = result;
         const parsed = Linking.parse(url);
-        console.log("[OctaraService] Parsed redirect URL:", parsed);
         const code = parsed.queryParams?.code as string;
 
         if (code) {
-          console.log(
-            "[OctaraService] Authorization code found, exchanging for token...",
-          );
           return await this.exchangeCodeForToken(code);
         } else {
           console.error("[OctaraService] No code found in redirect URL");
@@ -71,7 +64,6 @@ export class OctaraService {
 
   static async exchangeCodeForToken(code: string): Promise<string | null> {
     try {
-      console.log("[OctaraService] Exchanging code for token...");
       const response = await fetch(TOKEN_URL, {
         method: "POST",
         headers: {
@@ -89,7 +81,6 @@ export class OctaraService {
       const data = await response.json();
 
       if (data.access_token) {
-        console.log("[OctaraService] Token exchanged successfully");
         await AsyncStorage.setItem(TOKEN_STORAGE_KEY, data.access_token);
         return data.access_token;
       } else {

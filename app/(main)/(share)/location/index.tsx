@@ -63,7 +63,6 @@ export default function ShareLocationScreen() {
     } else {
       OctaraService.searchUsers(query)
         .then((users) => {
-          console.log(users);
           setResults(users);
         })
         .catch(() => {

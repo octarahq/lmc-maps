@@ -36,7 +36,6 @@ export function useLocationWebSocket(role: "sharer" | "viewer") {
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
-      console.log(`[WebSocket] Connecté (${role})`);
       setIsConnected(true);
       retryCount.current = 0;
 
@@ -57,7 +56,6 @@ export function useLocationWebSocket(role: "sharer" | "viewer") {
     ws.current.onclose = (e) => {
       setIsConnected(false);
       stopHeartbeat();
-      console.log(`[WebSocket] Déconnecté (${role}). Code: ${e.code}`);
 
       if (e.code !== 1000) {
         attemptReconnect();
