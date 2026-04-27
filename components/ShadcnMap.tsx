@@ -1,7 +1,44 @@
 import { addressSvg } from "@/assets/icons/svgStrings";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
-import { WebView } from "react-native-webview";
+import { WebView, WebViewProps } from "react-native-webview";
+
+const WebWebView = React.forwardRef<any, WebViewProps>(
+  ({ source, onMessage, style }, ref) => {
+    const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+    React.useImperativeHandle(ref, () => ({
+      postMessage: (data: string) => {
+        iframeRef.current?.contentWindow?.postMessage(data, "*");
+      },
+    }));
+
+    React.useEffect(() => {
+      const handler = (event: MessageEvent) => {
+        if (typeof event.data === "string" && event.data.includes("type")) {
+          onMessage?.({
+            nativeEvent: { data: event.data },
+          } as any);
+        }
+      };
+      window.addEventListener("message", handler);
+      return () => window.removeEventListener("message", handler);
+    }, [onMessage]);
+
+    return (
+      <iframe
+        ref={iframeRef}
+        style={{
+          border: "none",
+          width: "100%",
+          height: "100%",
+          ...(style as any),
+        }}
+        srcDoc={(source as any).html}
+      />
+    );
+  },
+);
 
 type Props = {
   initialZoom?: number;
@@ -110,18 +147,27 @@ const ShadcnMap = React.forwardRef<any, Props>(
         window.addEventListener('resize', function(){ map.invalidateSize(); });
         setTimeout(()=>map.invalidateSize(), 200);
 
-        map.whenReady(function(){
-          try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapReady' })); } catch(e) {}
-          try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'zoomChanged', zoom: map.getZoom() })); } catch(e) {}
-        });
+    function postToApp(data) {
+      const msg = typeof data === 'string' ? data : JSON.stringify(data);
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(msg);
+      } else {
+        window.parent.postMessage(msg, '*');
+      }
+    }
 
-        function sendMove(e){
-          window.ReactNativeWebView.postMessage(JSON.stringify({type:'mapMoved', cause: e.type }));
-        }
+    map.whenReady(function(){
+      try { postToApp({ type: 'mapReady' }); } catch(e) {}
+      try { postToApp({ type: 'zoomChanged', zoom: map.getZoom() }); } catch(e) {}
+    });
 
-        map.on('dragstart', sendMove);       
-        map.on('zoomend', function(){ try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'zoomChanged', zoom: map.getZoom() })); } catch(e) {} });
-        var currentBearing = 0;
+    function sendMove(e){
+      postToApp({type:'mapMoved', cause: e.type });
+    }
+
+    map.on('dragstart', sendMove);       
+    map.on('zoomend', function(){ try { postToApp({ type: 'zoomChanged', zoom: map.getZoom() }); } catch(e) {} });
+    var currentBearing = 0;
         var targetBearing = 0;
         var bearingRaf = null;
         var userMarker = null;
@@ -391,9 +437,11 @@ const ShadcnMap = React.forwardRef<any, Props>(
     </body>
     </html>`;
 
+    const WebComponent = Platform.OS === "web" ? WebWebView : WebView;
+
     return (
       <View style={styles.container}>
-        <WebView
+        <WebComponent
           originWhitelist={["*"]}
           source={{ html }}
           style={styles.webview}
@@ -403,7 +451,7 @@ const ShadcnMap = React.forwardRef<any, Props>(
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           scalesPageToFit={Platform.OS === "android"}
-          onMessage={(e) => {
+          onMessage={(e: any) => {
             try {
               const msg = JSON.parse(e.nativeEvent.data);
               if (onMapMessage) onMapMessage(msg);
@@ -426,6 +474,8 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+    width: "100%",
+    height: "100%",
     backgroundColor: "#000",
   },
 });

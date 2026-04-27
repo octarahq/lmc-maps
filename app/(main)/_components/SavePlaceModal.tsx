@@ -1,31 +1,31 @@
 import {
-    HeartIcon,
-    HomeIcon,
-    SchoolIcon,
-    StarIcon,
-    TrashIcon,
-    WorkIcon,
+  HeartIcon,
+  HomeIcon,
+  SchoolIcon,
+  StarIcon,
+  TrashIcon,
+  WorkIcon,
 } from "@/assets/icons";
 import { Colors } from "@/constants/theme";
 import { usePosition } from "@/contexts/PositionContext";
 import { useUser } from "@/contexts/UserContext";
 import { createTranslator } from "@/i18n";
 import {
-    PhotonFeature,
-    SearchEngineService,
+  PhotonFeature,
+  SearchEngineService,
 } from "@/services/SearchEngineService";
 import React from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 const PlaceIcons = [
@@ -389,3 +389,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+export default SavePlaceModal;

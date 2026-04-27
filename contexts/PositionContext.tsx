@@ -187,8 +187,16 @@ export function PositionProvider({ children }: { children: React.ReactNode }) {
       cancelAnimationFrame(animRef.current);
       animRef.current = null;
     }
-    subscriberRef.current?.remove();
-    subscriberRef.current = null;
+    if (subscriberRef.current) {
+      try {
+        if (typeof subscriberRef.current.remove === "function") {
+          subscriberRef.current.remove();
+        }
+      } catch (e) {
+        console.warn("[PositionContext] Failed to remove subscription:", e);
+      }
+      subscriberRef.current = null;
+    }
   }, []);
 
   React.useEffect(() => {

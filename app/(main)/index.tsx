@@ -39,7 +39,7 @@ export default function MainScreen() {
 
   return (
     <MapProvider style={{ flex: 1 }}>
-      <View style={styles.container}>
+      <View style={styles.container} pointerEvents="box-none">
         <StatusBar
           hidden
           translucent

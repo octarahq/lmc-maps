@@ -197,7 +197,16 @@ export const LocationSharingProvider: React.FC<{
     setIsConnected(false);
 
     if (locationSubscription.current) {
-      locationSubscription.current.remove();
+      try {
+        if (typeof locationSubscription.current.remove === "function") {
+          locationSubscription.current.remove();
+        }
+      } catch (e) {
+        console.warn(
+          "[LocationSharingContext] Failed to remove subscription:",
+          e,
+        );
+      }
       locationSubscription.current = null;
     }
 
@@ -298,7 +307,16 @@ export const LocationSharingProvider: React.FC<{
     return () => {
       isSharingRef.current = false;
       if (locationSubscription.current) {
-        locationSubscription.current.remove();
+        try {
+          if (typeof locationSubscription.current.remove === "function") {
+            locationSubscription.current.remove();
+          }
+        } catch (e) {
+          console.warn(
+            "[LocationSharingContext] Failed to remove subscription in cleanup:",
+            e,
+          );
+        }
       }
       if (sharerWs.current) {
         sharerWs.current.onclose = null;

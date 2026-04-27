@@ -135,7 +135,12 @@ export default function MapOverlay({
         style={styles.overlay}
         pointerEvents={blockMap ? "auto" : "box-none"}
       >
-        <Svg height={320} style={styles.topGradient} pointerEvents="none">
+        <Svg
+          height={320}
+          width="100%"
+          style={styles.topGradient}
+          pointerEvents="none"
+        >
           <Defs>
             <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor="#074fa8" stopOpacity="0.96" />
