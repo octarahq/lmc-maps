@@ -10,6 +10,7 @@ import { useKeepAwake } from "expo-keep-awake";
 import * as NavigationBar from "expo-navigation-bar";
 import * as Notifications from "expo-notifications";
 import { Slot, usePathname, useRouter } from "expo-router";
+import Head from "expo-router/head";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
@@ -19,8 +20,8 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthProvider } from "../contexts/AuthContext";
 import { HapticSettingsProvider } from "../contexts/HapticSettingsContext";
@@ -110,6 +111,19 @@ function InnerLayout() {
   }, [isLoading, hasFinishedOnboarding, privacy]);
 
   useEffect(() => {
+    if (Platform.OS === "web" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/service-worker.js")
+          .then((reg) => console.log("Service worker registered:", reg))
+          .catch((err) =>
+            console.log("Service worker registration failed:", err),
+          );
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     if (isLoading) return;
 
     const alwaysShowOnboarding =
@@ -161,8 +175,12 @@ function InnerLayout() {
       colorScheme === "dark"
         ? Colors.dark.backgroundDark
         : Colors.light.backgroundLight;
+
     SystemUI.setBackgroundColorAsync(bgColor).catch(() => {});
-    NativeStatusBar.setHidden(true, "none");
+
+    if (Platform.OS !== "web") {
+      NativeStatusBar.setHidden(true, "none");
+    }
 
     if (Platform.OS === "android") {
       const edgeToEdgeEnabled = Boolean(
@@ -188,10 +206,29 @@ function InnerLayout() {
     }
   }, [colorScheme, pathname]);
 
+  const currentBgColor = Colors.dark.backgroundDark;
+
   return (
     <>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        {isMainRoute ? (
+      <Head>
+        <title>Octara Maps</title>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="theme-color" content={currentBgColor} />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/android-icon-foreground.png" />
+      </Head>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <View
             style={[
               styles.safeArea,
@@ -207,27 +244,13 @@ function InnerLayout() {
               <Slot />
             </View>
           </View>
-        ) : (
-          <SafeAreaView
-            style={[
-              styles.safeArea,
-              {
-                backgroundColor:
-                  colorScheme === "dark"
-                    ? Colors.dark.backgroundDark
-                    : Colors.light.backgroundLight,
-              },
-            ]}
-            edges={["top", "bottom"]}
-          >
-            <View style={styles.slotContainer}>
-              <Slot />
-            </View>
-          </SafeAreaView>
-        )}
-        <StatusBar hidden style={colorScheme === "dark" ? "light" : "dark"} />
-      </ThemeProvider>
-      <UpdateDialog />
+          <StatusBar
+            style={colorScheme === "dark" ? "light" : "dark"}
+            translucent
+          />
+        </ThemeProvider>
+        <UpdateDialog />
+      </GestureHandlerRootView>
       {showSplash && <SplashScreenOverlay />}
     </>
   );
@@ -242,7 +265,7 @@ const styles = StyleSheet.create({
   },
   splashContainer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.dark.backgroundDark,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,

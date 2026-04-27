@@ -1,0 +1,26 @@
+{
+  "short_name": "Octara Maps",
+  "name": "Octara Maps",
+  "description": "Octara Maps - Explore your world",
+  "icons": [
+    {
+      "src": "/android-icon-foreground.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-icon-foreground.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "theme_color": "#121212",
+  "background_color": "#121212",
+  "orientation": "portrait"
+}

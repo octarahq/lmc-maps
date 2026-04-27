@@ -12,6 +12,18 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.octarahq.octaramaps"
     },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "pwa": {
+        "name": "Octara Maps",
+        "shortName": "Octara Maps",
+        "themeColor": "#0d7ff2",
+        "backgroundColor": "#101922",
+        "display": "standalone",
+        "startUrl": "/",
+        "icon": "./assets/images/icon.png"
+      }
+    },
     "android": {
       "permissions": [
         "REQUEST_INSTALL_PACKAGES",
@@ -47,10 +59,6 @@
           ]
         }
       ]
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
